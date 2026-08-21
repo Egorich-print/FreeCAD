@@ -2,9 +2,23 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+fn target_os() -> String {
+    env::var("CARGO_CFG_TARGET_OS").unwrap_or_default()
+}
+
+fn is_android() -> bool {
+    target_os() == "android"
+}
+
 fn occt_root() -> PathBuf {
     if let Ok(root) = env::var("OCCT_ROOT") {
         return PathBuf::from(root);
+    }
+    if is_android() {
+        panic!(
+            "Android build requires OCCT_ROOT pointing at an NDK-built OCCT install \
+             (see rust/android/build_occt_ndk.sh)"
+        );
     }
     let brew_prefix = Command::new("brew")
         .args(["--prefix", "opencascade"])
@@ -30,7 +44,7 @@ fn header_dir(root: &Path) -> PathBuf {
     }
     panic!(
         "OCCT headers not found under {}.\nSet OCCT_ROOT to an OCCT install prefix \
-         (e.g. `brew install opencascade` or an NDK cross-build) and rebuild.",
+         and rebuild.",
         root.display()
     );
 }
@@ -44,71 +58,86 @@ fn lib_dir(root: &Path) -> PathBuf {
     panic!("OCCT library directory not found under {}", root.display());
 }
 
-fn toolkit_exists(lib_dir: &Path, name: &str) -> bool {
-    let found_dylib = lib_dir.join(format!("lib{name}.dylib")).exists();
-    let found_so = lib_dir.join(format!("lib{name}.so")).exists();
-    let found_versioned = lib_dir
+/// Toolkits of the freecad kernel shim in **dependency order**
+/// (dependents first, so static archives resolve left to right).
+const TOOLKITS: &[&str] = &[
+    "TKDESTEP",
+    "TKDE",
+    "TKXSBase",
+    "TKMesh",
+    "TKShHealing",
+    "TKBool",
+    "TKBO",
+    "TKPrim",
+    "TKTopAlgo",
+    "TKGeomAlgo",
+    "TKBRep",
+    "TKGeomBase",
+    "TKG3d",
+    "TKG2d",
+    "TKMath",
+    "TKernel",
+];
+
+/// Legacy (pre-7.8) names mapped onto the modern list for desktop distros.
+fn legacy_name(kit: &str) -> Option<&'static str> {
+    match kit {
+        "TKDESTEP" => Some("TKSTEP"),
+        "TKDE" => None,
+        _ => None,
+    }
+}
+
+fn archive_exists(lib_dir: &Path, name: &str) -> bool {
+    lib_dir.join(format!("lib{name}.a")).exists()
+}
+
+fn dylib_exists(lib_dir: &Path, name: &str) -> bool {
+    if lib_dir.join(format!("lib{name}.dylib")).exists() || lib_dir.join(format!("lib{name}.so")).exists() {
+        return true;
+    }
+    lib_dir
         .read_dir()
         .map(|entries| {
             entries.filter_map(Result::ok).any(|entry| {
                 let file_name = entry.file_name();
-                let name = file_name.to_string_lossy();
-                name.starts_with(&format!("lib{name}."))
-                    && (name.ends_with(".so") || name.ends_with(".dylib"))
+                let name_owned = file_name.to_string_lossy();
+                name_owned.starts_with(&format!("lib{name}."))
+                    && (name_owned.ends_with(".so") || name_owned.ends_with(".dylib"))
             })
         })
-        .unwrap_or(false);
-    found_dylib || found_so || found_versioned
-}
-
-fn required_toolkits(lib_dir: &Path) -> Vec<&'static str> {
-    let mut kits = vec![
-        "TKernel",
-        "TKMath",
-        "TKG2d",
-        "TKG3d",
-        "TKGeomBase",
-        "TKGeomAlgo",
-        "TKBRep",
-        "TKTopAlgo",
-        "TKPrim",
-        "TKBO",
-        "TKBool",
-        "TKShHealing",
-        "TKMesh",
-        "TKXSBase",
-    ];
-    if toolkit_exists(lib_dir, "TKDESTEP") {
-        kits.push("TKDESTEP");
-    } else {
-        for legacy in [
-            "TKSTEPBase",
-            "TKSTEPAttr",
-            "TKSTEP209",
-            "TKSTEP207",
-            "TKSTEP",
-        ] {
-            if toolkit_exists(lib_dir, legacy) {
-                kits.push(legacy);
-            }
-        }
-    }
-    kits
+        .unwrap_or(false)
 }
 
 fn main() {
+    let android = is_android();
     let root = occt_root();
     let headers = header_dir(&root);
     let libs = lib_dir(&root);
 
-    let kits = required_toolkits(&libs);
-    for kit in &kits {
-        assert!(
-            toolkit_exists(&libs, kit),
-            "OCCT toolkit {kit} not found in {}",
-            libs.display()
-        );
+    let mut kits: Vec<String> = Vec::new();
+    for kit in TOOLKITS {
+        let resolved = if android {
+            // NDK install layout only carries the modern 7.9 names.
+            if archive_exists(&libs, kit) {
+                kit.to_string()
+            } else {
+                panic!("static OCCT toolkit {kit}.a not found in {}", libs.display());
+            }
+        } else {
+            match (dylib_exists(&libs, kit), legacy_name(kit).is_some_and(|l| dylib_exists(&libs, l))) {
+                (true, _) => kit.to_string(),
+                (false, true) => legacy_name(kit).unwrap().to_string(),
+                (false, false) => continue, // optional kit absent on this distro
+            }
+        };
+        kits.push(resolved);
     }
+    assert!(
+        !kits.is_empty(),
+        "no OCCT toolkits resolved in {}",
+        libs.display()
+    );
 
     let mut build = cxx_build::bridges(["src/lib.rs"]);
     build
@@ -124,7 +153,16 @@ fn main() {
     println!("cargo:rerun-if-changed=cpp/occt_shim.h");
     println!("cargo:rerun-if-changed=cpp/occt_shim.cpp");
     println!("cargo:rustc-link-search=native={}", libs.display());
+
+    let kind = if android { "static" } else { "dylib" };
     for kit in &kits {
-        println!("cargo:rustc-link-lib=dylib={kit}");
+        println!("cargo:rustc-link-lib={kind}={kit}");
+    }
+
+    if android {
+        // libc++/libc++abi come from the NDK clang++ driver used as rustc
+        // linker (see rust/android/build_rust.sh); `log` covers OCCT's
+        // Android diagnostics.
+        println!("cargo:rustc-link-lib=dylib=log");
     }
 }

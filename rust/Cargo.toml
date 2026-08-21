@@ -18,6 +18,7 @@ repository = "https://github.com/Egorich-print/FreeCAD"
 freecad-core = { path = "crates/freecad-core" }
 freecad-kernel = { path = "crates/freecad-kernel" }
 freecad-kernel-occt = { path = "crates/freecad-kernel-occt" }
+freecad-render = { path = "crates/freecad-render" }
 freecad-io = { path = "crates/freecad-io" }
 cxx = "1"
 cxx-build = "1"
