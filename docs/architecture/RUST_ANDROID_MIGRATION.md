@@ -139,3 +139,55 @@ OCCT reachable only through `freecad-kernel-occt`; renderer never sees OCCT type
 - **Rhai/WASM scripting now** — rejected: no consumer exists yet (Rule 10).
 - **Deleting/disabling any existing FreeCAD code** — rejected by mission rules;
   the C++ app remains untouched and buildable.
+
+---
+
+## 8. Phase 1 outcome (2026-08)
+
+Landed on `main` as additive commits (`rust/`, `docs/` only; zero edits to
+existing FreeCAD sources):
+
+| Commit | Contents |
+|---|---|
+| `docs:` audit | this document |
+| `build(rust):` workspace | `freecad-core` (MeshBuffer/ShapeId/validation, zero deps) |
+| `feat(kernel):` contract | `GeometryKernel` trait + `MockKernel` reference user |
+| `feat(occt):` bridge | cxx + ~420-line shim, registry of `ShapeId`, typed errors |
+| `feat(io):` loading | STEP/BREP bytes & paths over the trait |
+| `feat(render):` wgpu | orbit camera (unit-verified math), lambert pipeline, GpuMesh with face ranges, offscreen GPU proof, winit viewer example |
+| `build(android):` | ARM64 cdylib, verified 16 KB alignment, OCCT NDK recipe |
+| `docs:` FCStd | container investigation → slice plan |
+
+Verification matrix (commands actually executed on macOS/arm64):
+
+```text
+cargo test --workspace                                  16 passed / 0 failed
+cargo test -p freecad-render --features gpu-tests       GPU offscreen proof ok
+cargo clippy --workspace --all-targets -- -D warnings   exit 0
+cargo fmt --all -- --check                              clean
+cargo check --target aarch64-linux-android              core/kernel/io/render clean
+./rust/android/build_rust.sh arm64-v8a                  ELF aarch64 .so, LOAD align 0x4000
+```
+
+Discrepancies found while implementing (research-vs-reality notes):
+
+- OCCT **7.9 removed** `BRepBuilderAPI_MakeBox/Sphere`; shim uses
+  `BRepPrimAPI_*`. FreeCAD's own LibPack still pins 7.8.x — the shim must keep
+  compiling against both when it moves into the C++ app's CI.
+- OCCT 7.9 `BRepTools::Read` returns `void` (older bool overload gone).
+- `TopExp_Explorer` counts duplicate topology occurrences; unique counts need
+  `TopExp::MapShapes` (implemented in the shim).
+
+## 9. What remains for Phase 2
+
+1. OCCT static libs for Android via `rust/android/build_occt_ndk.sh`, then
+   `freecad-kernel-occt` under an Android target.
+2. Kotlin single-activity shell + JNI surface in `freecad-android`
+   (open-bytes → mesh buffers → wgpu surface render); bundled STEP asset.
+3. `freecad-io::fcstd` slice S0 (read-only geometry extraction) per
+   `FCSTD_COMPATIBILITY.md`, with real-document fixtures.
+4. Rust document model v0 (objects, links, placements, display state) sized to
+   what the viewer needs — no historical Property zoo yet.
+5. Selection/picking pass (face ranges are already carried end-to-end).
+6. Wire kernel-occt into FreeCAD's own CI as an optional target so the fork
+   keeps proving both worlds build.
