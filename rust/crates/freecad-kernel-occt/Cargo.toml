@@ -1,0 +1,18 @@
+[package]
+name = "freecad-kernel-occt"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "OCCT backend for the GeometryKernel trait: cxx bridge + minimal handwritten C++ shim"
+links = "freecad_kernel_occt_cpp"
+
+[dependencies]
+cxx = { workspace = true }
+freecad-core = { workspace = true }
+freecad-kernel = { workspace = true }
+
+[build-dependencies]
+cxx-build = { workspace = true }
+
+[dev-dependencies]
+freecad-io = { workspace = true }
