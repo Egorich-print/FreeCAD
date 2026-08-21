@@ -21,6 +21,8 @@ public:
   std::uint64_t make_sphere(double radius);
   std::uint64_t make_cylinder(double radius, double height);
 
+  std::uint64_t move_shape(std::uint64_t id, double dx, double dy, double dz);
+
   std::uint64_t read_step(rust::Slice<const std::uint8_t> data);
   std::uint64_t read_brep(rust::Slice<const std::uint8_t> data);
   bool write_step(std::uint64_t id, rust::Vec<std::uint8_t> &out);

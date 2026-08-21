@@ -5,6 +5,7 @@ members = [
     "crates/freecad-kernel",
     "crates/freecad-kernel-occt",
     "crates/freecad-io",
+    "crates/freecad-render",
 ]
 
 [workspace.package]
@@ -15,6 +16,7 @@ repository = "https://github.com/Egorich-print/FreeCAD"
 [workspace.dependencies]
 freecad-core = { path = "crates/freecad-core" }
 freecad-kernel = { path = "crates/freecad-kernel" }
+freecad-kernel-occt = { path = "crates/freecad-kernel-occt" }
 freecad-io = { path = "crates/freecad-io" }
 cxx = "1"
 cxx-build = "1"

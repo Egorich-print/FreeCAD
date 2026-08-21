@@ -153,6 +153,25 @@ fn io_helpers_roundtrip_over_the_kernel_trait() {
 }
 
 #[test]
+fn move_by_translates_a_copy_and_leaves_original() {
+    let mut k = backend();
+    let plate = k.make_box(120.0, 80.0, 12.0).unwrap();
+    let boss = k.make_cylinder(18.0, 60.0).unwrap();
+    let moved = k.move_by(&boss, 60.0, 40.0, 12.0).expect("move_by");
+
+    let fused = k.fuse(&plate, &moved).expect("fuse after translation");
+    assert_eq!(k.stats(&fused).unwrap().solids, 1);
+    let hole = k.make_cylinder(8.0, 200.0).unwrap();
+    let hole = k.move_by(&hole, 60.0, 40.0, -50.0).unwrap();
+    let drilled = k.cut(&fused, &hole).expect("drill");
+    assert_eq!(k.stats(&drilled).unwrap().solids, 1);
+
+    // original cylinder untouched: still centred on the origin
+    let bounds = k.bounds(&boss).unwrap();
+    assert!(bounds.min[0] < -17.9 && bounds.max[0] > 17.9);
+}
+
+#[test]
 fn failures_are_typed_and_carry_messages() {
     let mut k = backend();
 

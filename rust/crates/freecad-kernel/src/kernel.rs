@@ -50,6 +50,15 @@ pub trait GeometryKernel {
     fn make_sphere(&mut self, radius: f64) -> Result<Self::Shape, Self::Error>;
     fn make_cylinder(&mut self, radius: f64, height: f64) -> Result<Self::Shape, Self::Error>;
 
+    /// Copy the shape with a translation applied; the source stays alive.
+    fn move_by(
+        &mut self,
+        shape: &Self::Shape,
+        dx: f64,
+        dy: f64,
+        dz: f64,
+    ) -> Result<Self::Shape, Self::Error>;
+
     fn read_step(&mut self, data: &[u8]) -> Result<Self::Shape, Self::Error>;
     fn read_brep(&mut self, data: &[u8]) -> Result<Self::Shape, Self::Error>;
     fn write_step(&mut self, shape: &Self::Shape) -> Result<Vec<u8>, Self::Error>;

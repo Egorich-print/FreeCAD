@@ -85,6 +85,17 @@ impl GeometryKernel for MockKernel {
         Ok(self.allocate("make_cylinder"))
     }
 
+    fn move_by(
+        &mut self,
+        shape: &Self::Shape,
+        _dx: f64,
+        _dy: f64,
+        _dz: f64,
+    ) -> Result<Self::Shape, Self::Error> {
+        self.check_live(*shape)?;
+        Ok(self.allocate("move_by"))
+    }
+
     fn read_step(&mut self, data: &[u8]) -> Result<Self::Shape, Self::Error> {
         let text = core::str::from_utf8(data)
             .map_err(|_| KernelError::parse("step payload is not utf-8"))?;

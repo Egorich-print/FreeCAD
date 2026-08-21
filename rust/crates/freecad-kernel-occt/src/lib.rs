@@ -43,6 +43,8 @@ mod bridge {
             fn make_sphere(self: Pin<&mut OcctKernel>, radius: f64) -> u64;
             fn make_cylinder(self: Pin<&mut OcctKernel>, radius: f64, height: f64) -> u64;
 
+            fn move_shape(self: Pin<&mut OcctKernel>, id: u64, dx: f64, dy: f64, dz: f64) -> u64;
+
             fn read_step(self: Pin<&mut OcctKernel>, data: &[u8]) -> u64;
             fn read_brep(self: Pin<&mut OcctKernel>, data: &[u8]) -> u64;
             fn write_step(self: Pin<&mut OcctKernel>, id: u64, out: &mut Vec<u8>) -> bool;
@@ -186,6 +188,20 @@ impl GeometryKernel for OcctBackend {
             return Err(self.error("BREP export failed"));
         }
         Ok(out)
+    }
+
+    fn move_by(
+        &mut self,
+        shape: &Self::Shape,
+        dx: f64,
+        dy: f64,
+        dz: f64,
+    ) -> Result<Self::Shape, Self::Error> {
+        let id = self.pin().move_shape(shape.0, dx, dy, dz);
+        if id == 0 {
+            return Err(self.error("move_by failed"));
+        }
+        Ok(ShapeId(id))
     }
 
     fn fuse(&mut self, a: &Self::Shape, b: &Self::Shape) -> Result<Self::Shape, Self::Error> {

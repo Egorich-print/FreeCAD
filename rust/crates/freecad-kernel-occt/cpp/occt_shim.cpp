@@ -7,6 +7,7 @@
 #include <BRepBndLib.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepTools.hxx>
@@ -24,6 +25,7 @@
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 #include <gp_Pnt.hxx>
+#include <gp_Vec.hxx>
 #include <gp_Trsf.hxx>
 
 #include <cmath>
@@ -170,6 +172,26 @@ std::uint64_t OcctKernel::make_cylinder(double radius, double height) {
     id = impl_->registry.insert(maker.Shape());
   });
   return id;
+}
+
+std::uint64_t OcctKernel::move_shape(std::uint64_t id, double dx, double dy, double dz) {
+  TopoDS_Shape *shape = impl_->registry.find(id);
+  if (shape == nullptr) {
+    impl_->last_error = "move_shape: unknown shape id";
+    return kInvalidId;
+  }
+  std::uint64_t new_id = kInvalidId;
+  guard(impl_->last_error, [&] {
+    gp_Trsf transform;
+    transform.SetTranslation(gp_Vec(dx, dy, dz));
+    BRepBuilderAPI_Transform maker(*shape, transform, Standard_True);
+    if (maker.IsDone()) {
+      new_id = impl_->registry.insert(maker.Shape());
+    } else {
+      impl_->last_error = "BRepBuilderAPI_Transform failed";
+    }
+  });
+  return new_id;
 }
 
 std::uint64_t OcctKernel::read_step(rust::Slice<const std::uint8_t> data) {

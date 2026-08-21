@@ -1,0 +1,25 @@
+[package]
+name = "freecad-render"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "wgpu-based CAD renderer consuming freecad-core meshes (no Coin3D, no OCCT types)"
+
+[dependencies]
+freecad-core = { workspace = true }
+pollster = { workspace = true }
+wgpu = { workspace = true }
+
+[dev-dependencies]
+freecad-core = { workspace = true }
+freecad-io = { workspace = true }
+freecad-kernel = { workspace = true }
+freecad-kernel-occt = { workspace = true }
+winit = "0.30"
+
+[features]
+default = []
+gpu-tests = []
+
+[[example]]
+name = "viewer"
