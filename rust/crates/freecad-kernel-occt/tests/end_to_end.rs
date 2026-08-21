@@ -207,3 +207,25 @@ fn high_deflection_tessellation_is_at_least_as_dense_as_coarse() {
 fn fake_shape() -> freecad_core::ShapeId {
     freecad_core::ShapeId(u64::MAX - 1)
 }
+
+#[test]
+fn committed_step_fixture_loads_through_real_occt() {
+    let bytes = include_bytes!("fixtures/demo_part.step");
+    let mut k = backend();
+
+    let shape = k.read_step(bytes).expect("bundled fixture must import");
+    let stats = k.stats(&shape).expect("imported shape queryable");
+    assert_eq!(stats.solids, 1, "drilled plate stays one solid");
+    assert!(stats.faces >= 9, "got {}", stats.faces);
+
+    let mesh = k.tessellate(&shape, 0.5, 0.35).expect("tessellation");
+    mesh.validate().expect("mesh validates");
+    assert!(mesh.triangle_count() > 100, "got {}", mesh.triangle_count());
+
+    assert!(mesh.positions.iter().all(|p| p.iter().all(|v| v.is_finite())));
+    assert!(mesh.normals.iter().all(|n| n.iter().all(|v| v.is_finite())));
+
+    let bbox = mesh.bounds().expect("bounds");
+    assert!(bbox.max[0] > bbox.min[0] && bbox.max[1] > bbox.min[1] && bbox.max[2] > bbox.min[2]);
+    assert!(bbox.min[2] >= -1e-3 && bbox.max[2] <= 72.5, "plate+boss z range");
+}
