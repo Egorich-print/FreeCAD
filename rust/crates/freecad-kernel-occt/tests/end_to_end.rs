@@ -222,10 +222,17 @@ fn committed_step_fixture_loads_through_real_occt() {
     mesh.validate().expect("mesh validates");
     assert!(mesh.triangle_count() > 100, "got {}", mesh.triangle_count());
 
-    assert!(mesh.positions.iter().all(|p| p.iter().all(|v| v.is_finite())));
+    assert!(
+        mesh.positions
+            .iter()
+            .all(|p| p.iter().all(|v| v.is_finite()))
+    );
     assert!(mesh.normals.iter().all(|n| n.iter().all(|v| v.is_finite())));
 
     let bbox = mesh.bounds().expect("bounds");
     assert!(bbox.max[0] > bbox.min[0] && bbox.max[1] > bbox.min[1] && bbox.max[2] > bbox.min[2]);
-    assert!(bbox.min[2] >= -1e-3 && bbox.max[2] <= 72.5, "plate+boss z range");
+    assert!(
+        bbox.min[2] >= -1e-3 && bbox.max[2] <= 72.5,
+        "plate+boss z range"
+    );
 }

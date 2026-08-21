@@ -93,7 +93,9 @@ fn archive_exists(lib_dir: &Path, name: &str) -> bool {
 }
 
 fn dylib_exists(lib_dir: &Path, name: &str) -> bool {
-    if lib_dir.join(format!("lib{name}.dylib")).exists() || lib_dir.join(format!("lib{name}.so")).exists() {
+    if lib_dir.join(format!("lib{name}.dylib")).exists()
+        || lib_dir.join(format!("lib{name}.so")).exists()
+    {
         return true;
     }
     lib_dir
@@ -122,10 +124,16 @@ fn main() {
             if archive_exists(&libs, kit) {
                 kit.to_string()
             } else {
-                panic!("static OCCT toolkit {kit}.a not found in {}", libs.display());
+                panic!(
+                    "static OCCT toolkit {kit}.a not found in {}",
+                    libs.display()
+                );
             }
         } else {
-            match (dylib_exists(&libs, kit), legacy_name(kit).is_some_and(|l| dylib_exists(&libs, l))) {
+            match (
+                dylib_exists(&libs, kit),
+                legacy_name(kit).is_some_and(|l| dylib_exists(&libs, l)),
+            ) {
                 (true, _) => kit.to_string(),
                 (false, true) => legacy_name(kit).unwrap().to_string(),
                 (false, false) => continue, // optional kit absent on this distro

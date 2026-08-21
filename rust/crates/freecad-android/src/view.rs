@@ -11,10 +11,12 @@ use freecad_kernel::GeometryKernel;
 use freecad_kernel_occt::OcctBackend;
 use freecad_render::{GpuMesh, OrbitCamera, RenderItem, Renderer, TargetSize, create_depth_view};
 
+use jni::JNIEnv;
 use jni::objects::{JByteArray, JClass, JObject};
 use jni::sys::{jbyteArray, jint, jlong};
-use jni::JNIEnv;
-use raw_window_handle::{AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle};
+use raw_window_handle::{
+    AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle,
+};
 use wgpu::SurfaceTargetUnsafe;
 
 const STATUS_OK: i32 = 0;
@@ -54,11 +56,15 @@ struct Viewer {
 // aliasing of the Viewer or the window pointer occurs.
 unsafe impl Send for Viewer {}
 
-fn load_meshes(step_bytes: &[u8]) -> Result<(Vec<freecad_core::mesh::MeshBuffer>, [f64; 3], [f64; 3]), i32> {
+fn load_meshes(
+    step_bytes: &[u8],
+) -> Result<(Vec<freecad_core::mesh::MeshBuffer>, [f64; 3], [f64; 3]), i32> {
     let mut kernel = OcctBackend::new().map_err(|_| ERR_KERNEL)?;
     let shape = load_bytes(&mut kernel, step_bytes, Format::Step).map_err(|_| ERR_KERNEL)?;
     let bounds = kernel.bounds(&shape).map_err(|_| ERR_KERNEL)?;
-    let mesh = kernel.tessellate(&shape, 0.5, 0.35).map_err(|_| ERR_KERNEL)?;
+    let mesh = kernel
+        .tessellate(&shape, 0.5, 0.35)
+        .map_err(|_| ERR_KERNEL)?;
     if mesh.is_empty() {
         return Err(ERR_MESH_EMPTY);
     }
@@ -80,8 +86,7 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
 
     // Safety invariant: `surface` is valid for this call; ANativeWindow keeps
     // its own retained reference which Viewer::destroy releases.
-    let window =
-        unsafe { ANativeWindow_fromSurface(env.get_raw(), surface.as_raw()) };
+    let window = unsafe { ANativeWindow_fromSurface(env.get_raw(), surface.as_raw()) };
     if window.is_null() {
         return ERR_GPU as jlong;
     }
@@ -197,7 +202,11 @@ fn with_viewer<R>(handle: jlong, f: impl FnOnce(&mut Viewer) -> R) -> Option<R> 
 }
 
 #[unsafe(no_mangle)]
-pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeDestroy(_env: JNIEnv, _class: JClass, handle: jlong) {
+pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeDestroy(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) {
     if handle > 0 {
         let mut viewer = unsafe { Box::from_raw(handle as *mut Viewer) };
         viewer.surface.take();
@@ -206,17 +215,32 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeDestroy(_env: 
 }
 
 #[unsafe(no_mangle)]
-pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeOrbit(_env: JNIEnv, _class: JClass, handle: jlong, dx: f32, dy: f32) {
+pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeOrbit(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+    dx: f32,
+    dy: f32,
+) {
     with_viewer(handle, |v| v.camera.orbit(dx as f64, dy as f64));
 }
 
 #[unsafe(no_mangle)]
-pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeZoom(_env: JNIEnv, _class: JClass, handle: jlong, factor: f32) {
+pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeZoom(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+    factor: f32,
+) {
     with_viewer(handle, |v| v.camera.zoom(factor as f64));
 }
 
 #[unsafe(no_mangle)]
-pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(_env: JNIEnv, _class: JClass, handle: jlong) -> jint {
+pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) -> jint {
     let mut result = ERR_GPU;
     with_viewer(handle, |viewer| {
         let Some(surface) = viewer.surface.as_ref() else {
@@ -244,10 +268,15 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(_env: J
             &viewer.camera,
             width as f32 / height.max(1) as f32,
         );
-        let items: Vec<RenderItem<'_>> =
-            viewer.meshes.iter().map(|m| RenderItem { mesh: m }).collect();
+        let items: Vec<RenderItem<'_>> = viewer
+            .meshes
+            .iter()
+            .map(|m| RenderItem { mesh: m })
+            .collect();
         let mut encoder = viewer.device.create_command_encoder(&Default::default());
-        viewer.renderer.render(&mut encoder, &view, &viewer.depth, size, &items);
+        viewer
+            .renderer
+            .render(&mut encoder, &view, &viewer.depth, size, &items);
         viewer.queue.submit(Some(encoder.finish()));
         let _ = frame.present();
 
