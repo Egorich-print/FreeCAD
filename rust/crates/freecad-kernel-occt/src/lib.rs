@@ -54,6 +54,7 @@ mod bridge {
             fn cut(self: Pin<&mut OcctKernel>, a: u64, b: u64) -> u64;
             fn common(self: Pin<&mut OcctKernel>, a: u64, b: u64) -> u64;
 
+            #[allow(clippy::too_many_arguments)]
             fn tessellate(
                 self: Pin<&mut OcctKernel>,
                 id: u64,
@@ -253,9 +254,7 @@ impl GeometryKernel for OcctBackend {
         if !ok {
             return Err(self.error("tessellation failed"));
         }
-        let to_vec3 = |flat: Vec<f32>| -> Vec<[f32; 3]> {
-            flat.chunks_exact(3).map(|c| [c[0], c[1], c[2]]).collect()
-        };
+        let to_vec3 = |flat: Vec<f32>| -> Vec<[f32; 3]> { Vec::from(flat.as_chunks::<3>().0) };
         let mesh = MeshBuffer {
             positions: to_vec3(positions),
             normals: to_vec3(normals),

@@ -110,13 +110,9 @@ impl Mat4 {
 
     pub fn mul(&self, other: &Mat4) -> Mat4 {
         let mut out = [[0.0f32; 4]; 4];
-        for col in 0..4 {
-            for row in 0..4 {
-                let mut acc = 0.0;
-                for k in 0..4 {
-                    acc += self.0[k][row] * other.0[col][k];
-                }
-                out[col][row] = acc;
+        for (col, out_col) in out.iter_mut().enumerate() {
+            for (row, slot) in out_col.iter_mut().enumerate() {
+                *slot = (0..4).map(|k| self.0[k][row] * other.0[col][k]).sum();
             }
         }
         Mat4(out)

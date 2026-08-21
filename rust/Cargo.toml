@@ -6,6 +6,7 @@ members = [
     "crates/freecad-kernel-occt",
     "crates/freecad-io",
     "crates/freecad-render",
+    "crates/freecad-android",
 ]
 
 [workspace.package]

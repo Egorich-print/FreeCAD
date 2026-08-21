@@ -177,15 +177,20 @@ fn failures_are_typed_and_carry_messages() {
 
     let err = k
         .read_step(b"this is not a STEP file")
-        .err()
-        .expect("parse must fail");
+        .expect_err("parse must fail");
     assert!(!err.to_string().is_empty());
 
-    let err = k.tessellate(&fake_shape(), 0.0, 0.1).err().unwrap();
+    let err = match k.tessellate(&fake_shape(), 0.0, 0.1) {
+        Err(err) => err,
+        Ok(_) => panic!("invalid deflection must fail"),
+    };
     assert_eq!(err.kind, KernelErrorKind::InvalidInput);
 
     let missing = fake_shape();
-    let err = k.stats(&missing).err().expect("unknown id rejected");
+    let err = match k.stats(&missing) {
+        Err(err) => err,
+        Ok(_) => panic!("unknown id rejected"),
+    };
     assert_eq!(err.kind, KernelErrorKind::Geometry);
     assert!(!err.message.is_empty());
 }

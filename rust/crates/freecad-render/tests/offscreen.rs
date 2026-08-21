@@ -89,8 +89,12 @@ fn offscreen_render_produces_lit_pixels() {
 
     let lit = {
         let data = readback.slice(..).get_mapped_range();
-        data.chunks_exact(4)
-            .filter(|px| px[0] as u32 + px[1] as u32 + px[2] as u32 > CLEAR_SUM_THRESHOLD)
+        data.as_chunks::<4>()
+            .0
+            .iter()
+            .filter(|px| {
+                u32::from(px[0]) + u32::from(px[1]) + u32::from(px[2]) > CLEAR_SUM_THRESHOLD
+            })
             .count()
     };
     readback.unmap();

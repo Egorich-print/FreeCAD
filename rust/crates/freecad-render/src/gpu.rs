@@ -69,7 +69,7 @@ impl GpuMesh {
 
 /// `packed` is `Vec<f32>`; transmute-free byte view without adding bytemuck.
 fn bytemuck_bytes(data: &[f32]) -> &[u8] {
-    let len = data.len() * core::mem::size_of::<f32>();
+    let len = std::mem::size_of_val(data);
     let ptr = data.as_ptr().cast::<u8>();
     // Safety invariant (mission Rule 8): &[f32] is fully initialised, aligned
     // (align(f32)==align(u8)), and u8 has no validity constraints; the slice
@@ -79,7 +79,7 @@ fn bytemuck_bytes(data: &[f32]) -> &[u8] {
 
 /// Indices variant: u32 buffer contents.
 pub(crate) fn u32_bytes(data: &[u32]) -> &[u8] {
-    let len = data.len() * core::mem::size_of::<u32>();
+    let len = std::mem::size_of_val(data);
     // Safety invariant: same reasoning as `bytemuck_bytes`.
     unsafe { core::slice::from_raw_parts(data.as_ptr().cast::<u8>(), len) }
 }

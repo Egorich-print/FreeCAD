@@ -6,16 +6,15 @@ fn occt_root() -> PathBuf {
     if let Ok(root) = env::var("OCCT_ROOT") {
         return PathBuf::from(root);
     }
-    if let Ok(output) = Command::new("brew")
+    let brew_prefix = Command::new("brew")
         .args(["--prefix", "opencascade"])
         .output()
-    {
-        if output.status.success() {
-            let prefix = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            if !prefix.is_empty() {
-                return PathBuf::from(prefix);
-            }
-        }
+        .ok()
+        .filter(|out| out.status.success())
+        .map(|out| String::from_utf8_lossy(&out.stdout).trim().to_string())
+        .filter(|prefix| !prefix.is_empty());
+    if let Some(prefix) = brew_prefix {
+        return PathBuf::from(prefix);
     }
     PathBuf::from("/opt/homebrew/opt/opencascade")
 }

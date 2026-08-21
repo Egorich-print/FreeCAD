@@ -1,0 +1,13 @@
+[package]
+name = "freecad-android"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Thin C-ABI shell for embedding the FreeCAD Rust core in an Android app (Phase 2 grows the JNI surface here)"
+
+[lib]
+name = "freecad_android"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+freecad-core = { workspace = true }

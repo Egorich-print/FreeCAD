@@ -59,7 +59,7 @@ impl MeshBuffer {
     }
 
     pub fn validate(&self) -> Result<(), MeshError> {
-        if self.indices.len() % 3 != 0 {
+        if !self.indices.len().is_multiple_of(3) {
             return Err(MeshError::IndexCountNotMultipleOfThree);
         }
         if self.normals.len() != self.positions.len() {
