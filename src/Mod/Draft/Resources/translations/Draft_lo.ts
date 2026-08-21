@@ -1739,6 +1739,7 @@ pattern definitions to be added to the standard patterns</source>
       <translation>ຂະໜາດຟອນ</translation>
     </message>
     <message>
+      <location filename="../ui/preferences-dxf.ui" line="557"/>
       <location filename="../ui/preferences-drafttexts.ui" line="130"/>
       <location filename="../ui/preferences-drafttexts.ui" line="335"/>
       <location filename="../ui/preferences-drafttexts.ui" line="423"/>
@@ -1746,7 +1747,6 @@ pattern definitions to be added to the standard patterns</source>
       <location filename="../ui/preferences-drafttexts.ui" line="653"/>
       <location filename="../ui/preferences-drafttexts.ui" line="682"/>
       <location filename="../ui/preferences-drafttexts.ui" line="711"/>
-      <location filename="../ui/preferences-dxf.ui" line="557"/>
       <source>mm</source>
       <translation>mm</translation>
     </message>
@@ -1904,8 +1904,8 @@ in the Draft Scale Widget. If the scale is 1:100 the multiplier is 100.</source>
       <translation>ຄວາມກວ້າງເສັ້ນເລີ່ມຕົ້ນ</translation>
     </message>
     <message>
-      <location filename="../ui/preferences-drafttexts.ui" line="240"/>
       <location filename="../ui/preferences-draft.ui" line="338"/>
+      <location filename="../ui/preferences-drafttexts.ui" line="240"/>
       <source> px</source>
       <translation> px</translation>
     </message>
@@ -2473,8 +2473,8 @@ instead of Draft or Part objects. This overrides the 'Import As' setting</source
       <translation>ສ້າງສະເກັດ</translation>
     </message>
     <message>
-      <location filename="../ui/preferences-svg.ui" line="242"/>
       <location filename="../ui/preferences-dxf.ui" line="504"/>
+      <location filename="../ui/preferences-svg.ui" line="242"/>
       <source>Export Options</source>
       <translation>ຕົວເລືອກການສົ່ງອອກ</translation>
     </message>
@@ -3091,9 +3091,9 @@ if they match the X, Y or Z axis of the global coordinate system</source>
     </message>
     <message>
       <location filename="../../DraftGui.py" line="809"/>
+      <location filename="../../draftguitools/gui_rotate.py" line="289"/>
       <location filename="../../draftguitools/gui_move.py" line="218"/>
       <location filename="../../draftguitools/gui_scale.py" line="226"/>
-      <location filename="../../draftguitools/gui_rotate.py" line="289"/>
       <source>Copy</source>
       <translation>ກັອບປີ້</translation>
     </message>
@@ -3633,29 +3633,29 @@ or try saving to a lower DWG version.</source>
       <translation>ຕັ້ງຂະໜາດຄຳອະທິບາຍກຳນົດເອງໃນຮູບແບບ x:x, x=x</translation>
     </message>
     <message>
+      <location filename="../../draftutils/groups.py" line="101"/>
+      <location filename="../../draftutils/gui_utils.py" line="924"/>
+      <location filename="../../draftutils/utils.py" line="1141"/>
+      <location filename="../../draftfunctions/cut.py" line="60"/>
+      <location filename="../../draftmake/make_pointarray.py" line="92"/>
+      <location filename="../../draftmake/make_patharray.py" line="179"/>
+      <location filename="../../draftmake/make_patharray.py" line="328"/>
+      <location filename="../../draftmake/make_array.py" line="85"/>
+      <location filename="../../draftmake/make_label.py" line="201"/>
+      <location filename="../../draftmake/make_layer.py" line="56"/>
+      <location filename="../../draftmake/make_layer.py" line="146"/>
       <location filename="../../draftmake/make_dimension.py" line="266"/>
       <location filename="../../draftmake/make_dimension.py" line="355"/>
       <location filename="../../draftmake/make_dimension.py" line="483"/>
       <location filename="../../draftmake/make_dimension.py" line="604"/>
-      <location filename="../../draftmake/make_label.py" line="201"/>
       <location filename="../../draftmake/make_text.py" line="95"/>
       <location filename="../../draftmake/make_text.py" line="178"/>
-      <location filename="../../draftmake/make_array.py" line="85"/>
-      <location filename="../../draftmake/make_patharray.py" line="179"/>
-      <location filename="../../draftmake/make_patharray.py" line="328"/>
-      <location filename="../../draftmake/make_layer.py" line="56"/>
-      <location filename="../../draftmake/make_layer.py" line="146"/>
-      <location filename="../../draftmake/make_pointarray.py" line="92"/>
-      <location filename="../../draftutils/utils.py" line="1141"/>
-      <location filename="../../draftutils/gui_utils.py" line="924"/>
-      <location filename="../../draftutils/groups.py" line="101"/>
-      <location filename="../../draftfunctions/cut.py" line="60"/>
       <source>No active document. Aborting.</source>
       <translation>ບໍ່ມີເອກະສານທີ່ກຳລັງໃຊ້ງານ. ກຳລັງຍົກເລີກ.</translation>
     </message>
     <message>
-      <location filename="../../draftutils/gui_utils.py" line="932"/>
       <location filename="../../draftutils/groups.py" line="137"/>
+      <location filename="../../draftutils/gui_utils.py" line="932"/>
       <source>Wrong input: object {} not in document.</source>
       <translation>ຂໍ້ມູນທີ່ປ້ອນເຂົ້າຜິດ: ວັດຖຸ {} ບໍ່ມີຢູ່ໃນເອກະສານ.</translation>
     </message>
@@ -3808,10 +3808,10 @@ or try saving to a lower DWG version.</source>
       <translation>%1 ເລືອກຈຸດຂໍ້ຄວາມ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_lines.py" line="95"/>
-      <location filename="../../draftguitools/gui_ellipses.py" line="77"/>
-      <location filename="../../draftguitools/gui_dimensions.py" line="122"/>
       <location filename="../../draftguitools/gui_rectangles.py" line="71"/>
+      <location filename="../../draftguitools/gui_dimensions.py" line="122"/>
+      <location filename="../../draftguitools/gui_ellipses.py" line="77"/>
+      <location filename="../../draftguitools/gui_lines.py" line="95"/>
       <source>Pick first point</source>
       <translation>ເລືອກຈຸດທຳອິດ</translation>
     </message>
@@ -3829,6 +3829,13 @@ or try saving to a lower DWG version.</source>
       <location filename="../../draftguitools/gui_lines.py" line="207"/>
       <source>Create Wire</source>
       <translation>ສ້າງເສັ້ນໂຄງ (Wire)</translation>
+    </message>
+    <message>
+      <location filename="../../draftguitools/gui_lines.py" line="246"/>
+      <location filename="../../drafttests/test_lines_gui.py" line="56"/>
+      <location filename="../../drafttests/test_lines_gui.py" line="94"/>
+      <source>Point identical to previous point</source>
+      <translation>ຈຸດຄືກັນກັບຈຸດກ່ອນໜ້າ</translation>
     </message>
     <message>
       <location filename="../../draftguitools/gui_lines.py" line="327"/>
@@ -3851,15 +3858,15 @@ or try saving to a lower DWG version.</source>
       <translation>ເສັ້ນຕໍ່ເນື່ອງ</translation>
     </message>
     <message>
+      <location filename="../../draftguitools/gui_splines.py" line="153"/>
+      <location filename="../../draftguitools/gui_splines.py" line="158"/>
+      <location filename="../../draftguitools/gui_beziers.py" line="158"/>
+      <location filename="../../draftguitools/gui_beziers.py" line="161"/>
       <location filename="../../draftguitools/gui_lines.py" line="240"/>
       <location filename="../../draftguitools/gui_lines.py" line="259"/>
       <location filename="../../draftguitools/gui_lines.py" line="266"/>
       <location filename="../../draftguitools/gui_lines.py" line="274"/>
       <location filename="../../draftguitools/gui_lines.py" line="285"/>
-      <location filename="../../draftguitools/gui_beziers.py" line="158"/>
-      <location filename="../../draftguitools/gui_beziers.py" line="161"/>
-      <location filename="../../draftguitools/gui_splines.py" line="153"/>
-      <location filename="../../draftguitools/gui_splines.py" line="158"/>
       <source>Pick next point</source>
       <translation>ເລືອກຈຸດຖັດໄປ</translation>
     </message>
@@ -3936,18 +3943,6 @@ or try saving to a lower DWG version.</source>
       <translation>ເລືອກຈຸດສຸດທ້າຍ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_move.py" line="195"/>
-      <location filename="../../draftguitools/gui_scale.py" line="126"/>
-      <location filename="../../draftguitools/gui_rotate.py" line="245"/>
-      <source>No valid subelements selected</source>
-      <translation>ບໍ່ມີອົງປະກອບຍ່ອຍທີ່ຖືກຕ້ອງຖືກເລືອກ</translation>
-    </message>
-    <message>
-      <location filename="../../draftguitools/gui_move.py" line="220"/>
-      <source>Move</source>
-      <translation>ຍ້າຍ</translation>
-    </message>
-    <message>
       <location filename="../../draftguitools/gui_move.py" line="252"/>
       <source>%1 pick start point</source>
       <translation>%1 ເລືອກຈຸດເລີ່ມຕົ້ນ</translation>
@@ -3958,18 +3953,30 @@ or try saving to a lower DWG version.</source>
       <translation>%1 ເລືອກຈຸດສຸດທ້າຍ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_arcs.py" line="94"/>
+      <location filename="../../draftguitools/gui_rotate.py" line="245"/>
+      <location filename="../../draftguitools/gui_move.py" line="195"/>
+      <location filename="../../draftguitools/gui_scale.py" line="126"/>
+      <source>No valid subelements selected</source>
+      <translation>ບໍ່ມີອົງປະກອບຍ່ອຍທີ່ຖືກຕ້ອງຖືກເລືອກ</translation>
+    </message>
+    <message>
+      <location filename="../../draftguitools/gui_move.py" line="220"/>
+      <source>Move</source>
+      <translation>ຍ້າຍ</translation>
+    </message>
+    <message>
       <location filename="../../draftguitools/gui_polygons.py" line="90"/>
+      <location filename="../../draftguitools/gui_arcs.py" line="94"/>
       <source>Pick center point</source>
       <translation>ເລືອກຈຸດໃຈກາງ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_arcs.py" line="269"/>
-      <location filename="../../draftguitools/gui_arcs.py" line="286"/>
-      <location filename="../../draftguitools/gui_arcs.py" line="430"/>
       <location filename="../../draftguitools/gui_polygons.py" line="208"/>
       <location filename="../../draftguitools/gui_polygons.py" line="219"/>
       <location filename="../../draftguitools/gui_polygons.py" line="282"/>
+      <location filename="../../draftguitools/gui_arcs.py" line="269"/>
+      <location filename="../../draftguitools/gui_arcs.py" line="286"/>
+      <location filename="../../draftguitools/gui_arcs.py" line="430"/>
       <source>Pick radius</source>
       <translation>ເລືອກລັດສະໝີ</translation>
     </message>
@@ -4026,54 +4033,54 @@ or try saving to a lower DWG version.</source>
       <translation>ກົດ %1 ຄ້າງໄວ້ ເພື່ອກ່າຍ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_tool_utils.py" line="114"/>
+      <location filename="../../draftguitools/gui_tool_utils.py" line="104"/>
       <source>%1 select objects to modify</source>
       <translation>%1 ເລືອກວັດຖຸທີ່ຈະປັບປຸງ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_tool_utils.py" line="116"/>
+      <location filename="../../draftguitools/gui_tool_utils.py" line="106"/>
       <source>%1 select object to modify</source>
       <translation>%1 ເລືອກວັດຖຸທີ່ຈະປັບປຸງ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_tool_utils.py" line="133"/>
+      <location filename="../../draftguitools/gui_tool_utils.py" line="123"/>
       <source>%1 / %2 / %3 switch constraint</source>
       <translation>%1 / %2 / %3 ສະຫຼັບຂໍ້ຈຳກັດ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_tool_utils.py" line="143"/>
+      <location filename="../../draftguitools/gui_tool_utils.py" line="133"/>
       <source>%1 toggle relative</source>
       <translation>%1 ສະຫຼັບແບບທຽບຖານ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_tool_utils.py" line="152"/>
+      <location filename="../../draftguitools/gui_tool_utils.py" line="142"/>
       <source>%1 toggle global</source>
       <translation>%1 ສະຫຼັບແບບສາກົນ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_tool_utils.py" line="161"/>
+      <location filename="../../draftguitools/gui_tool_utils.py" line="151"/>
       <source>%1 toggle continue</source>
       <translation>%1 ສະຫຼັບແບບຕໍ່ເນື່ອງ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_tool_utils.py" line="172"/>
+      <location filename="../../draftguitools/gui_tool_utils.py" line="162"/>
       <source>%1 / hold %2 select edge</source>
       <translation>%1 / ກົດ %2 ຄ້າງໄວ້ ເພື່ອເລືອກຂອບ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_tool_utils.py" line="174"/>
+      <location filename="../../draftguitools/gui_tool_utils.py" line="164"/>
       <source>Hold %1 select edge</source>
       <translation>ກົດ %1 ຄ້າງໄວ້ ເພື່ອເລືອກຂອບ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_arcs.py" line="490"/>
       <location filename="../../draftguitools/gui_polygons.py" line="312"/>
+      <location filename="../../draftguitools/gui_arcs.py" line="490"/>
       <source>%1 pick center</source>
       <translation>%1 ເລືອກຈຸດໃຈກາງ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_arcs.py" line="492"/>
       <location filename="../../draftguitools/gui_polygons.py" line="314"/>
+      <location filename="../../draftguitools/gui_arcs.py" line="492"/>
       <source>%1 pick radius</source>
       <translation>%1 ເລືອກລັດສະໝີ</translation>
     </message>
@@ -4124,16 +4131,16 @@ or try saving to a lower DWG version.</source>
       <translation>ສ້າງເສັ້ນໂຄ້ງວົງມົນຈາກ 3 ຈຸດ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_lines.py" line="318"/>
+      <location filename="../../draftguitools/gui_rectangles.py" line="219"/>
       <location filename="../../draftguitools/gui_ellipses.py" line="222"/>
       <location filename="../../draftguitools/gui_arcs.py" line="658"/>
-      <location filename="../../draftguitools/gui_rectangles.py" line="219"/>
+      <location filename="../../draftguitools/gui_lines.py" line="318"/>
       <source>%1 pick first point</source>
       <translation>%1 ເລືອກຈຸດທຳອິດ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_lines.py" line="322"/>
       <location filename="../../draftguitools/gui_arcs.py" line="662"/>
+      <location filename="../../draftguitools/gui_lines.py" line="322"/>
       <source>%1 pick second point</source>
       <translation>%1 ເລືອກຈຸດທີສອງ</translation>
     </message>
@@ -4156,13 +4163,6 @@ or try saving to a lower DWG version.</source>
       <location filename="../../draftguitools/gui_subelements.py" line="176"/>
       <source>%1 run Move, Rotate or Scale on subelements</source>
       <translation>%1 ຍ້າຍ, ໝຸນ ຫຼື ປັບຂະໜາດ ໃນສ່ວນປະກອບຍ່ອຍ</translation>
-    </message>
-    <message>
-      <location filename="../../draftguitools/gui_subelements.py" line="179"/>
-      <location filename="../../draftguitools/gui_dimensions.py" line="604"/>
-      <location filename="../../draftguitools/gui_edit.py" line="387"/>
-      <source>%1 finish</source>
-      <translation>%1 ສຳເລັດ</translation>
     </message>
     <message>
       <location filename="../../draftguitools/gui_edit.py" line="298"/>
@@ -4303,9 +4303,9 @@ or try saving to a lower DWG version.</source>
       <translation>ສ້າງຈຸດ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_points.py" line="189"/>
-      <location filename="../../draftguitools/gui_texts.py" line="180"/>
       <location filename="../../drafttaskpanels/task_shapestring.py" line="216"/>
+      <location filename="../../draftguitools/gui_texts.py" line="180"/>
+      <location filename="../../draftguitools/gui_points.py" line="189"/>
       <source>%1 pick point</source>
       <translation>%1 ເລືອກຈຸດ</translation>
     </message>
@@ -4499,18 +4499,18 @@ The final angle will be the base angle plus this amount.</source>
       <translation>ວັດຖຸນີ້ບໍ່ຮອງຮັບ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_trimex.py" line="137"/>
       <location filename="../../draftutils/utils.py" line="393"/>
+      <location filename="../../draftguitools/gui_trimex.py" line="137"/>
       <source>Only a single face can be extruded</source>
       <translation>ສາມາດດຶງຂຶ້ນຮູບໄດ້ພຽງແຕ່ໜ້າດຽວເທົ່ານັ້ນ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_trimex.py" line="156"/>
       <location filename="../../draftutils/utils.py" line="396"/>
       <location filename="../../draftutils/utils.py" line="399"/>
       <location filename="../../draftutils/utils.py" line="404"/>
       <location filename="../../draftutils/utils.py" line="410"/>
       <location filename="../../draftutils/utils.py" line="425"/>
+      <location filename="../../draftguitools/gui_trimex.py" line="156"/>
       <source>Trimex does not support this object type</source>
       <translation>Trimex ບໍ່ຮອງຮັບປະເພດວັດຖຸນີ້</translation>
     </message>
@@ -4748,12 +4748,12 @@ The final angle will be the base angle plus this amount.</source>
     <message>
       <location filename="../../draftguitools/gui_beziers.py" line="503"/>
       <source>%1 define first point and knot</source>
-      <translation>%1 ກຳນົດຈຸດທຳອິດ ແລະ ປົມ</translation>
+      <translation type="unfinished">%1 define first point and knot</translation>
     </message>
     <message>
       <location filename="../../draftguitools/gui_beziers.py" line="509"/>
       <source>%1 define next point and knot</source>
-      <translation>%1 ກຳນົດຈຸດຖັດໄປ ແລະ ປົມ</translation>
+      <translation type="unfinished">%1 define next point and knot</translation>
     </message>
     <message>
       <location filename="../../draftguitools/gui_ellipses.py" line="73"/>
@@ -4767,14 +4767,14 @@ The final angle will be the base angle plus this amount.</source>
       <translation>ສ້າງຮູບວົງລີ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_ellipses.py" line="211"/>
       <location filename="../../draftguitools/gui_rectangles.py" line="208"/>
+      <location filename="../../draftguitools/gui_ellipses.py" line="211"/>
       <source>Pick opposite point</source>
       <translation>ເລືອກຈຸດກົງກັນຂ້າມ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_ellipses.py" line="226"/>
       <location filename="../../draftguitools/gui_rectangles.py" line="223"/>
+      <location filename="../../draftguitools/gui_ellipses.py" line="226"/>
       <source>%1 pick opposite point</source>
       <translation>%1 ເລືອກຈຸດກົງກັນຂ້າມ</translation>
     </message>
@@ -4860,6 +4860,13 @@ The final angle will be the base angle plus this amount.</source>
       <location filename="../../draftguitools/gui_dimensions.py" line="602"/>
       <source>%1 pick next dimension point</source>
       <translation>%1 ເລືອກຈຸດຂະໜາດຖັດໄປ</translation>
+    </message>
+    <message>
+      <location filename="../../draftguitools/gui_dimensions.py" line="604"/>
+      <location filename="../../draftguitools/gui_subelements.py" line="179"/>
+      <location filename="../../draftguitools/gui_edit.py" line="387"/>
+      <source>%1 finish</source>
+      <translation>%1 ສຳເລັດ</translation>
     </message>
     <message>
       <location filename="../../draftguitools/gui_dimensions.py" line="610"/>
@@ -5029,159 +5036,159 @@ The final angle will be the base angle plus this amount.</source>
       <translation>ຫຼຸດລະດັບ (Downgrade)</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="232"/>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="403"/>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="197"/>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="361"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="182"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="338"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="235"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="406"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="200"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="364"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="185"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="341"/>
       <source>Object:</source>
       <translation>ວັດຖຸ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="92"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="95"/>
       <source>Polar Array</source>
       <translation>ອາເຣແບບຂົ້ວໂລກ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="186"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="189"/>
       <source>Number of elements must be at least 2</source>
       <translation>ຈຳນວນອົງປະກອບຕ້ອງມີຢ່າງໜ້ອຍ 2</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="194"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="197"/>
       <source>The angle is above 360 degrees. It is set to this value to proceed.</source>
       <translation>ມຸມເກີນ 360 ອົງສາ. ມັນຖືກກຳນົດເປັນຄ່ານີ້ເພື່ອດຳເນີນການຕໍ່.</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="201"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="204"/>
       <source>The angle is below -360 degrees. It is set to this value to proceed.</source>
       <translation>ມຸມຕ່ຳກວ່າ -360 ອົງສາ. ມັນຖືກກຳນົດເປັນຄ່ານີ້ເພື່ອດຳເນີນການຕໍ່.</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="256"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="259"/>
       <source>Create Polar Array</source>
       <translation>ສ້າງ ໂພລາອາເຣ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="374"/>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="332"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="309"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="377"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="335"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="312"/>
       <source>Fuse:</source>
       <translation>ລວມ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="345"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="348"/>
       <source>Create Link array:</source>
       <translation>ສ້າງ ລິ້ງອາເຣ (Link array):</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="339"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="342"/>
       <source>Number of elements:</source>
       <translation>ຈຳນວນອົງປະກອບ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="340"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="343"/>
       <source>Polar angle:</source>
       <translation>ມຸມໂພລາ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="368"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="343"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="371"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="346"/>
       <source>Center of rotation:</source>
       <translation>ຈຸດໃຈກາງການໝຸນ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="90"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="93"/>
       <source>Orthogonal Array</source>
       <translation>ອໍໂທໂກນໍອາເຣ (Orthogonal Array)</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="224"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="227"/>
       <source>Number of elements must be at least 1</source>
       <translation>ຈຳນວນອົງປະກອບຕ້ອງມີຢ່າງໜ້ອຍ 1</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="242"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="245"/>
       <source>In linear mode, at least 1 axis must be selected</source>
       <translation>ໃນໂໝດເສັ້ນຊື່, ຢ່າງໜ້ອຍຕ້ອງເລືອກ 1 ແກນ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="314"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="317"/>
       <source>Create Orthogonal Array</source>
       <translation>ສ້າງ ອໍໂທໂກນໍອາເຣ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="387"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="322"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="390"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="325"/>
       <source>Create link array:</source>
       <translation>ສ້າງ ລິ້ງອາເຣ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="405"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="408"/>
       <source>Number of X elements:</source>
       <translation>ຈຳນວນອົງປະກອບ X:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="408"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="411"/>
       <source>Interval X:</source>
       <translation>ໄລຍະຫ່າງ X:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="410"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="413"/>
       <source>Number of Y elements:</source>
       <translation>ຈຳນວນອົງປະກອບ Y:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="413"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="416"/>
       <source>Interval Y:</source>
       <translation>ໄລຍະຫ່າງ Y:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="415"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="418"/>
       <source>Number of Z elements:</source>
       <translation>ຈຳນວນອົງປະກອບ Z:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="418"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="421"/>
       <source>Interval Z:</source>
       <translation>ໄລຍະຫ່າງ Z:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="434"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="437"/>
       <source>Switch to Ortho Mode</source>
       <translation>ສະຫຼັບເປັນໂໝດອໍໂທ (Ortho)</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="451"/>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="489"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="454"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="492"/>
       <source>X-Axis</source>
       <translation>ແກນ X</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="453"/>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="491"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="456"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="494"/>
       <source>Y-Axis</source>
       <translation>ແກນ Y</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="455"/>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="493"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="458"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="496"/>
       <source>Z-Axis</source>
       <translation>ແກນ Z</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="457"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="460"/>
       <source>Switch to Linear Mode</source>
       <translation>ສະຫຼັບເປັນໂໝດເສັ້ນຊື່ (Linear)</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="528"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="531"/>
       <source>Number of elements</source>
       <translation>ຈຳນວນອົງປະກອບ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="529"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="532"/>
       <source>Interval</source>
       <translation>ໄລຍະຫ່າງ</translation>
     </message>
@@ -5196,71 +5203,71 @@ The final angle will be the base angle plus this amount.</source>
       <translation>ຄ່າເລີ່ມຕົ້ນ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="203"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="206"/>
       <source>Radial distance is zero. Resulting array may not look correct.</source>
       <translation>ໄລຍະລັດສະໝີເປັນສູນ. ອາເຣທີ່ໄດ້ອາດຈະເບິ່ງບໍ່ຖືກຕ້ອງ.</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="205"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="208"/>
       <source>Radial distance is negative. It is made positive to proceed.</source>
       <translation>ໄລຍະລັດສະໝີເປັນຄ່າລົບ. ມັນຖືກເຮັດເປັນຄ່າບວກເພື່ອດຳເນີນການຕໍ່.</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="92"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="95"/>
       <source>Circular Array</source>
       <translation>ວົງມົນອາເຣ (Circular Array)</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="220"/>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="185"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="174"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="223"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="188"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="177"/>
       <source>At least 1 element must be selected</source>
       <translation>ຢ່າງໜ້ອຍຕ້ອງເລືອກ 1 ອົງປະກອບ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="189"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="192"/>
       <source>Number of layers must be at least 2</source>
       <translation>ຈຳນວນຊັ້ນຕ້ອງມີຢ່າງໜ້ອຍ 2</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="231"/>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="196"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="181"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="234"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="199"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="184"/>
       <source>Selection is not suitable for array</source>
       <translation>ທີ່ເລືອກບໍ່ເໝາະສົມສຳລັບອາເຣ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="209"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="212"/>
       <source>Tangential distance cannot be 0</source>
       <translation>ໄລຍະເສັ້ນສຳຜັດບໍ່ສາມາດເປັນ 0</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="216"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="219"/>
       <source>Tangential distance is negative. It is made positive to proceed.</source>
       <translation>ໄລຍະເສັ້ນສຳຜັດເປັນຄ່າລົບ. ມັນຖືກເຮັດເປັນຄ່າບວກເພື່ອດຳເນີນການຕໍ່.</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="275"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="278"/>
       <source>Create Circular Array</source>
       <translation>ສ້າງ ວົງມົນອາເຣ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="362"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="365"/>
       <source>Radial distance:</source>
       <translation>ໄລຍະລັດສະໝີ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="363"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="366"/>
       <source>Tangential distance:</source>
       <translation>ໄລຍະເສັ້ນສຳຜັດ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="364"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="367"/>
       <source>Number of concentric circles:</source>
       <translation>ຈຳນວນວົງມົນຮ່ວມສູນ:</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="365"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="368"/>
       <source>Symmetry parameter:</source>
       <translation>ພະລາມິເຕີຄວາມສົມມາດ:</translation>
     </message>
@@ -5393,11 +5400,11 @@ The final angle will be the base angle plus this amount.</source>
       <translation>ບໍ່ສາມາດສ້າງຮູບຊົງໄດ້:</translation>
     </message>
     <message>
+      <location filename="../../draftmake/make_polararray.py" line="111"/>
+      <location filename="../../draftmake/make_pointarray.py" line="97"/>
       <location filename="../../draftmake/make_patharray.py" line="184"/>
       <location filename="../../draftmake/make_patharray.py" line="333"/>
-      <location filename="../../draftmake/make_pointarray.py" line="97"/>
       <location filename="../../draftmake/make_orthoarray.py" line="149"/>
-      <location filename="../../draftmake/make_polararray.py" line="111"/>
       <location filename="../../draftmake/make_circulararray.py" line="135"/>
       <source>Wrong input: base_object not in document.</source>
       <translation>ຂໍ້ມູນບໍ່ຖືກຕ້ອງ: ວັດຖຸພື້ນຖານ (base_object) ບໍ່ມີຢູ່ໃນເອກະສານ.</translation>
@@ -5409,18 +5416,24 @@ The final angle will be the base angle plus this amount.</source>
       <translation>ຂໍ້ມູນບໍ່ຖືກຕ້ອງ: ວັດຖຸເສັ້ນທາງ (path_object) ບໍ່ມີຢູ່ໃນເອກະສານ.</translation>
     </message>
     <message>
-      <location filename="../../draftmake/make_label.py" line="317"/>
+      <location filename="../../draftmake/make_polararray.py" line="123"/>
       <location filename="../../draftmake/make_patharray.py" line="195"/>
       <location filename="../../draftmake/make_patharray.py" line="266"/>
       <location filename="../../draftmake/make_patharray.py" line="273"/>
       <location filename="../../draftmake/make_patharray.py" line="343"/>
-      <location filename="../../draftmake/make_layer.py" line="185"/>
       <location filename="../../draftmake/make_orthoarray.py" line="139"/>
-      <location filename="../../draftmake/make_polararray.py" line="123"/>
+      <location filename="../../draftmake/make_label.py" line="317"/>
+      <location filename="../../draftmake/make_layer.py" line="185"/>
       <source>Wrong input: must be a number.</source>
       <translation>ຂໍ້ມູນບໍ່ຖືກຕ້ອງ: ຕ້ອງເປັນຕົວເລກ.</translation>
     </message>
     <message>
+      <location filename="../../draftmake/make_polararray.py" line="135"/>
+      <location filename="../../draftmake/make_patharray.py" line="202"/>
+      <location filename="../../draftmake/make_patharray.py" line="253"/>
+      <location filename="../../draftmake/make_patharray.py" line="260"/>
+      <location filename="../../draftmake/make_label.py" line="209"/>
+      <location filename="../../draftmake/make_circulararray.py" line="165"/>
       <location filename="../../draftmake/make_dimension.py" line="272"/>
       <location filename="../../draftmake/make_dimension.py" line="278"/>
       <location filename="../../draftmake/make_dimension.py" line="285"/>
@@ -5430,12 +5443,6 @@ The final angle will be the base angle plus this amount.</source>
       <location filename="../../draftmake/make_dimension.py" line="610"/>
       <location filename="../../draftmake/make_dimension.py" line="635"/>
       <location filename="../../draftmake/make_dimension.py" line="642"/>
-      <location filename="../../draftmake/make_label.py" line="209"/>
-      <location filename="../../draftmake/make_patharray.py" line="202"/>
-      <location filename="../../draftmake/make_patharray.py" line="253"/>
-      <location filename="../../draftmake/make_patharray.py" line="260"/>
-      <location filename="../../draftmake/make_polararray.py" line="135"/>
-      <location filename="../../draftmake/make_circulararray.py" line="165"/>
       <source>Wrong input: must be a vector.</source>
       <translation>ຂໍ້ມູນບໍ່ຖືກຕ້ອງ: ຕ້ອງເປັນເວັກເຕີ.</translation>
     </message>
@@ -5462,8 +5469,8 @@ The final angle will be the base angle plus this amount.</source>
       <translation>ຂໍ້ມູນ: ຄ່າດຽວຖືກຂະຫຍາຍເປັນເວັກເຕີ.</translation>
     </message>
     <message>
-      <location filename="../../draftmake/make_orthoarray.py" line="113"/>
       <location filename="../../draftmake/make_polararray.py" line="117"/>
+      <location filename="../../draftmake/make_orthoarray.py" line="113"/>
       <location filename="../../draftmake/make_circulararray.py" line="153"/>
       <source>Wrong input: must be an integer number.</source>
       <translation>ຂໍ້ມູນບໍ່ຖືກຕ້ອງ: ຕ້ອງເປັນຕົວເລກຖ້ວນ.</translation>
@@ -5476,9 +5483,9 @@ The final angle will be the base angle plus this amount.</source>
       <translation>ຂໍ້ມູນ: ຈຳນວນອົງປະກອບຕ້ອງມີຢ່າງໜ້ອຍ 1. ມັນຖືກກຳນົດເປັນ 1.</translation>
     </message>
     <message>
+      <location filename="../../draftmake/make_pointarray.py" line="119"/>
       <location filename="../../draftmake/make_label.py" line="217"/>
       <location filename="../../draftmake/make_text.py" line="113"/>
-      <location filename="../../draftmake/make_pointarray.py" line="119"/>
       <source>Wrong input: must be a placement, a vector, or a rotation.</source>
       <translation>ຂໍ້ມູນບໍ່ຖືກຕ້ອງ: ຕ້ອງເປັນການວາງຕຳແໜ່ງ, ເວັກເຕີ, ຫຼື ການໝຸນ.</translation>
     </message>
@@ -5673,15 +5680,15 @@ The final angle will be the base angle plus this amount.</source>
     </message>
     <message>
       <location filename="../../draftviewproviders/view_clone.py" line="71"/>
-      <location filename="../../draftviewproviders/view_draft_annotation.py" line="284"/>
-      <location filename="../../draftviewproviders/view_base.py" line="470"/>
       <location filename="../../draftviewproviders/view_hatch.py" line="87"/>
+      <location filename="../../draftviewproviders/view_base.py" line="470"/>
+      <location filename="../../draftviewproviders/view_draft_annotation.py" line="284"/>
       <source>Edit</source>
       <translation>ແກ້ໄຂ</translation>
     </message>
     <message>
-      <location filename="../../draftviewproviders/view_base.py" line="475"/>
       <location filename="../../draftviewproviders/view_wire.py" line="208"/>
+      <location filename="../../draftviewproviders/view_base.py" line="475"/>
       <source>Flatten</source>
       <translation>ເຮັດໃຫ້ແປ</translation>
     </message>
@@ -5964,8 +5971,8 @@ of existing objects in all opened documents?</source>
       <translation>ປ່ຽນຄວາມຊັນ</translation>
     </message>
     <message>
-      <location filename="../../draftguitools/gui_pathtwistedarray.py" line="92"/>
       <location filename="../../draftguitools/gui_patharray.py" line="114"/>
+      <location filename="../../draftguitools/gui_pathtwistedarray.py" line="92"/>
       <source>Select exactly 2 objects, the base object and the path object, before calling this command</source>
       <translation>ເລືອກ 2 ວັດຖຸໃຫ້ພໍດີ, ວັດຖຸພື້ນຖານ ແລະ ວັດຖຸເສັ້ນທາງ, ກ່ອນຈະເອີ້ນໃຊ້ຄຳສັ່ງນີ້</translation>
     </message>
@@ -6125,21 +6132,14 @@ https://github.com/yorikvanhavre/Draft-dxf-importer
       <translation>ບໍ່ມີໜ້າທີ່ໃຊ້ໄດ້ສຳລັບການແຮງເງົາ (hatch)</translation>
     </message>
     <message>
-      <location filename="../../drafttests/test_lines_gui.py" line="56"/>
-      <location filename="../../drafttests/test_lines_gui.py" line="94"/>
-      <location filename="../../draftguitools/gui_lines.py" line="246"/>
-      <source>Point identical to previous point</source>
-      <translation>ຈຸດຄືກັນກັບຈຸດກ່ອນໜ້າ</translation>
+      <location filename="../../draftguitools/gui_field_locks.py" line="90"/>
+      <source>Keeps the value fixed during 3D input. The lock icon or a double-click unlocks the field.</source>
+      <translation>ຮັກສາຄ່າໃຫ້ຄົງທີ່ລະຫວ່າງການປ້ອນຂໍ້ມູນ 3D. ໄອຄອນລັອກ ຫຼື ການດັບເບິລຄລິກຈະເປັນການປົດລັອກຊ່ອງຂໍ້ມູນ.</translation>
     </message>
     <message>
       <location filename="../../draftviewproviders/view_wpproxy.py" line="95"/>
       <source>Save Camera View</source>
-      <translation>ບັນທຶກມຸມມອງກ້ອງ</translation>
-    </message>
-    <message>
-      <location filename="../../draftguitools/gui_field_locks.py" line="90"/>
-      <source>Keeps the value fixed during 3D input. The lock icon or a double-click unlocks the field.</source>
-      <translation>ຮັກສາຄ່າໃຫ້ຄົງທີ່ລະຫວ່າງການປ້ອນຂໍ້ມູນ 3D. ໄອຄອນລັອກ ຫຼື ການດັບເບິລຄລິກຈະເປັນການປົດລັອກຊ່ອງຂໍ້ມູນ.</translation>
+      <translation type="unfinished">Save Camera View</translation>
     </message>
   </context>
   <context>
@@ -6244,16 +6244,16 @@ https://github.com/yorikvanhavre/Draft-dxf-importer
       <translation>ຄວາມຊັນ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="154"/>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="134"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="130"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="157"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="137"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="133"/>
       <source>True</source>
       <translation>ແມ່ນ</translation>
     </message>
     <message>
-      <location filename="../../drafttaskpanels/task_orthoarray.py" line="156"/>
-      <location filename="../../drafttaskpanels/task_circulararray.py" line="138"/>
-      <location filename="../../drafttaskpanels/task_polararray.py" line="134"/>
+      <location filename="../../drafttaskpanels/task_orthoarray.py" line="159"/>
+      <location filename="../../drafttaskpanels/task_circulararray.py" line="141"/>
+      <location filename="../../drafttaskpanels/task_polararray.py" line="137"/>
       <source>False</source>
       <translation>ບໍ່ແມ່ນ</translation>
     </message>
@@ -6328,8 +6328,8 @@ https://github.com/yorikvanhavre/Draft-dxf-importer
       <translation>ເປີດ</translation>
     </message>
     <message>
-      <location filename="../../draftobjects/label.py" line="326"/>
       <location filename="../../draftguitools/gui_layers.py" line="401"/>
+      <location filename="../../draftobjects/label.py" line="326"/>
       <source>Name</source>
       <translation>ຊື່</translation>
     </message>
@@ -7053,12 +7053,12 @@ set True for fusion or False for compound</source>
       <translation>ສ້າງໜ້າພຽງ</translation>
     </message>
     <message>
+      <location filename="../../draftobjects/wire.py" line="90"/>
       <location filename="../../draftobjects/polygon.py" line="70"/>
       <location filename="../../draftobjects/bspline.py" line="57"/>
       <location filename="../../draftobjects/rectangle.py" line="70"/>
-      <location filename="../../draftobjects/circle.py" line="64"/>
-      <location filename="../../draftobjects/wire.py" line="90"/>
       <location filename="../../draftobjects/bezcurve.py" line="66"/>
+      <location filename="../../draftobjects/circle.py" line="64"/>
       <source>The area of this object</source>
       <translation>ເນື້ອທີ່ຂອງວັດຖຸນີ້</translation>
     </message>
@@ -7083,16 +7083,16 @@ set True for fusion or False for compound</source>
       <translation>ວິທີການແຕ້ມຮູບຫຼາຍຫຼ່ຽມຈາກວົງມົນຄວບຄຸມ</translation>
     </message>
     <message>
+      <location filename="../../draftobjects/wire.py" line="78"/>
       <location filename="../../draftobjects/polygon.py" line="61"/>
       <location filename="../../draftobjects/rectangle.py" line="55"/>
-      <location filename="../../draftobjects/wire.py" line="78"/>
       <source>Radius to use to fillet the corners</source>
       <translation>ລັດສະໝີທີ່ຈະໃຊ້ເພື່ອລົບມົນຢູ່ມຸມ</translation>
     </message>
     <message>
+      <location filename="../../draftobjects/wire.py" line="81"/>
       <location filename="../../draftobjects/polygon.py" line="64"/>
       <location filename="../../draftobjects/rectangle.py" line="58"/>
-      <location filename="../../draftobjects/wire.py" line="81"/>
       <source>Size of the chamfer to give to the corners</source>
       <translation>ຂະໜາດຂອງການລົບຫຼ່ຽມທີ່ຈະໃຊ້ຢູ່ມຸມ</translation>
     </message>
@@ -8095,18 +8095,18 @@ Use 'arch' to force US arch notation</source>
 ໃຊ້ 'arch' ເພື່ອບັງຄັບໃຊ້ຮູບແບບສະຖາປັດ US</translation>
     </message>
     <message>
-      <location filename="../../draftviewproviders/view_draft_annotation.py" line="144"/>
-      <location filename="../../draftviewproviders/view_draft_annotation.py" line="159"/>
       <location filename="../../draftviewproviders/view_wire.py" line="67"/>
       <location filename="../../draftviewproviders/view_wire.py" line="80"/>
+      <location filename="../../draftviewproviders/view_draft_annotation.py" line="144"/>
+      <location filename="../../draftviewproviders/view_draft_annotation.py" line="159"/>
       <source>Arrow size</source>
       <translation>ຂະໜາດລູກສອນ</translation>
     </message>
     <message>
-      <location filename="../../draftviewproviders/view_draft_annotation.py" line="149"/>
-      <location filename="../../draftviewproviders/view_draft_annotation.py" line="166"/>
       <location filename="../../draftviewproviders/view_wire.py" line="72"/>
       <location filename="../../draftviewproviders/view_wire.py" line="85"/>
+      <location filename="../../draftviewproviders/view_draft_annotation.py" line="149"/>
+      <location filename="../../draftviewproviders/view_draft_annotation.py" line="166"/>
       <source>Arrow type</source>
       <translation>ປະເພດລູກສອນ</translation>
     </message>

@@ -205,9 +205,9 @@ void TaskExtrudeParameters::setupSideDialog(SideController& side)
 
 void TaskExtrudeParameters::updateStartUI()
 {
-    const auto mode = static_cast<StartMode>(ui->startMode->currentIndex());
-    const bool hasOffset = mode != StartMode::ProfilePlane;
-    const bool hasReference = mode == StartMode::Reference;
+    const int type = ui->startMode->currentIndex();
+    const bool hasOffset = type != 0;
+    const bool hasReference = type == 2;
 
     ui->labelStartOffset->setVisible(hasOffset);
     ui->startOffsetEdit->setVisible(hasOffset);
@@ -730,12 +730,11 @@ void TaskExtrudeParameters::onStartOffsetChanged(double len)
 void TaskExtrudeParameters::onStartModeChanged(int type)
 {
     auto extrude = getObject<PartDesign::FeatureExtrude>();
-    const auto mode = static_cast<StartMode>(type);
     extrude->StartType.setValue(type);
-    if (mode == StartMode::Reference && !extrude->StartReference.getValue()) {
+    if (type == 2 && !extrude->StartReference.getValue()) {
         ui->buttonStartReference->setChecked(true);
     }
-    else if (mode != StartMode::Reference) {
+    else if (type != 2) {
         setSelectionMode(None);
     }
     updateStartUI();

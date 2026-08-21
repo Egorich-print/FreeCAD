@@ -38,7 +38,6 @@
 #include "ui_DlgDocumentObject.h"
 #include "Application.h"
 #include "Document.h"
-#include "MainWindow.h"
 #include "BitmapFactory.h"
 #include "PropertyView.h"
 #include "Selection.h"
@@ -273,8 +272,6 @@ void DlgDocumentObject::attachObserver()
         return;
     }
 
-    savedActiveView = Gui::getMainWindow()->activeWindow();
-
     Gui::Selection().selStackPush();
     attachSelection();
 
@@ -345,11 +342,6 @@ void DlgDocumentObject::detachObserver()
     }
     if (view) {
         view->blockSelection(false);
-    }
-
-    if (savedActiveView) {
-        Gui::getMainWindow()->setActiveWindow(savedActiveView);
-        savedActiveView = nullptr;
     }
 
     parentView = nullptr;

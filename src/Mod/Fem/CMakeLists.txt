@@ -1,4 +1,3 @@
-disable_occt8_deprecation_warnings()
 
 if(BUILD_FEM_VTK)
     add_definitions(-DFC_USE_VTK)

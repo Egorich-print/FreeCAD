@@ -34,11 +34,6 @@
 
 class QTreeWidgetItem;
 
-namespace Gui
-{
-class MDIView;
-}
-
 namespace Gui::Dialog
 {
 
@@ -133,7 +128,6 @@ private:
     QTimer* timer;
 
     QPointer<QWidget> parentView;
-    QPointer<Gui::MDIView> savedActiveView;
     std::vector<App::SubObjectT> savedSelections;
 
     bool filterOwner;

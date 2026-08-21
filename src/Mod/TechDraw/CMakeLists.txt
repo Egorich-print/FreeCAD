@@ -1,4 +1,3 @@
-disable_occt8_deprecation_warnings()
 
 add_definitions(-DMOD_TECHDRAW_HANDLE_FACES=1)
 

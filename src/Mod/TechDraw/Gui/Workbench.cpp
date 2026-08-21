@@ -205,7 +205,6 @@ Gui::MenuItem* Workbench::setupMenuBar() const
     *pages << "Separator";
     *pages << "TechDraw_ExportPageSVG";
     *pages << "TechDraw_ExportPageDXF";
-    *pages << "TechDraw_ExportPagePDF";
 
     // views
     Gui::MenuItem* views = new Gui::MenuItem;

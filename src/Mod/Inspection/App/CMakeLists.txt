@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-disable_occt8_deprecation_warnings()
-
 set(Inspection_LIBS
     FreeCADApp
     Mesh

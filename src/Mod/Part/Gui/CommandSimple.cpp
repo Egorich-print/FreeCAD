@@ -87,7 +87,7 @@ void CmdPartSimpleCylinder::activated(int iMsg)
         );
         commitCommand();
         updateActive();
-        doCommand(Gui, "Gui.ActiveDocument.ActiveView.sendMessage(\"ViewFit\")");
+        doCommand(Gui, "Gui.SendMsgToActiveView(\"ViewFit\")");
     }
 }
 

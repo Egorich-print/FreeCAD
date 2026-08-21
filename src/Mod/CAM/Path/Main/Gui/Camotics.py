@@ -34,7 +34,6 @@ import Path.Post.Command as PathPost
 import camotics
 import io
 import json
-import os
 import queue
 import subprocess
 
@@ -83,7 +82,7 @@ class CAMoticsUI:
         filename = QtGui.QFileDialog.getSaveFileName(
             self.form,
             translate("Path", "Save Project As"),
-            os.path.dirname(FreeCAD.activeDocument().FileName),
+            "",
             translate("Path", "CAMotics Project (*.camotics)"),
         )[0]
         if filename:

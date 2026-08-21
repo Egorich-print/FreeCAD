@@ -201,7 +201,7 @@ public:
     /**
      * Get a list of all mod directories.
      */
-    static std::vector<std::filesystem::path> modPaths();
+    std::vector<std::filesystem::path> modPaths() const;
 
     /**
      * Get the path to the saved preference packs.

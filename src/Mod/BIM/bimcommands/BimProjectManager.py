@@ -412,7 +412,7 @@ class BIM_ProjectManager:
         if outline:
             FreeCADGui.Selection.clearSelection()
             FreeCADGui.Selection.addSelection(outline)
-            FreeCADGui.ActiveDocument.ActiveView.sendMessage("ViewSelection")
+            FreeCADGui.SendMsgToActiveView("ViewSelection")
             FreeCADGui.Selection.clearSelection()
         # aggregate layout group
         if self.building and grp:

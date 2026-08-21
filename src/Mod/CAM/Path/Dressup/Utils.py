@@ -60,7 +60,9 @@ def isOp(obj):
     if not getattr(obj, "Proxy", None):
         return False
     proxy = obj.Proxy.__module__
-    return "Path.Op" in proxy or "Path.Dressup" in proxy
+    if "Path.Op" not in proxy and "Path.Dressup" not in proxy:
+        return False
+    return True
 
 
 def baseOp(path):
@@ -70,6 +72,6 @@ def baseOp(path):
     return path
 
 
-def toolController(path, default=None):
+def toolController(path):
     """toolController(path) ... return the tool controller from the base op."""
-    return getattr(baseOp(path), "ToolController", default)
+    return baseOp(path).ToolController

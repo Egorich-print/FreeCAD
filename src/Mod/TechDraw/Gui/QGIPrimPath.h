@@ -73,8 +73,6 @@ public:
     void setFillColor(QColor c);
     QColor getFillColor() { return getDefaultFillColor(); }
 
-    void setHighlightFill(bool on) { m_highlightFill = on; }
-
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
@@ -109,7 +107,6 @@ protected:
     Qt::BrushStyle m_fillNormal;               //current Normal fill style
 
     double m_edgeFuzz;
-    bool m_highlightFill = true;
 };
 
 } // namespace MDIViewPageGui

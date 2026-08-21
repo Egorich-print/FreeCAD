@@ -267,10 +267,10 @@ class BIM_Library_TaskPanel:
                         FreeCAD.newDocument(self.previewDocName)
                         FreeCAD.setActiveDocument(self.previewDocName)
                         Part.show(Part.read(self.path))
-                        FreeCADGui.ActiveDocument.ActiveView.sendMessage("ViewFit")
+                        FreeCADGui.SendMsgToActiveView("ViewFit")
                     elif self.path.lower().endswith(".fcstd"):
                         openedDoc = FreeCAD.openDocument(self.path)
-                        FreeCADGui.ActiveDocument.ActiveView.sendMessage("ViewFit")
+                        FreeCADGui.SendMsgToActiveView("ViewFit")
                         self.previewDocName = FreeCAD.ActiveDocument.Name
                         thumbnailSave = PARAMS.GetBool("SaveThumbnails", False)
                         if thumbnailSave == True:
@@ -616,7 +616,7 @@ class BIM_Library_TaskPanel:
         for o in FreeCAD.ActiveDocument.Objects:
             if not o in before:
                 FreeCADGui.Selection.addSelection(o)
-        FreeCADGui.ActiveDocument.ActiveView.sendMessage("ViewSelection")
+        FreeCADGui.SendMsgToActiveView("ViewSelection")
 
     def download(self, url):
 

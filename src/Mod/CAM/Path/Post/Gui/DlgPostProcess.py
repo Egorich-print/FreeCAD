@@ -34,7 +34,6 @@ import Path
 import Path.Preferences as PathPref
 from Path.Main.Gui.Editor import CodeEditor
 from PySide import QtCore, QtGui
-import os
 
 translate = FreeCAD.Qt.translate
 
@@ -161,7 +160,6 @@ class PostProcessDialog:
         self._populate_fixtures()
         self._populate_job_details()
         self._populate_operations()
-        self._populate_output()
         self._populate_warnings()  # must be last — updates tab badge
 
     def _populate_title(self):
@@ -567,23 +565,15 @@ class PostProcessDialog:
         dlg.plainTextEditComment.setPlainText(getattr(self.job, "Description", "") or "")
 
     def _populate_operations(self):
-        from Path.Base.Util import toolControllerForOp, coolantModeForOp
-
-        col_num = 0
-        col_op_label = 1
-        col_tool_number = 2
-        col_tc = 3
-        col_coolant = 4
-        col_time = 5
         dlg = self.dialog
         tree = dlg.treeWidgetOperations
         tree.blockSignals(True)
-        tree.setTextElideMode(QtCore.Qt.ElideMiddle)
-        tree.setWordWrap(False)
         tree.clear()
+        tree.setHeaderHidden(True)
 
-        for index, op in enumerate(self._get_active_operations(), 1):
+        for op in self._get_active_operations():
             item = QtGui.QTreeWidgetItem(tree)
+            item.setText(0, op.Label)
             if not self.operations or op in self.operations["operations"]:
                 item.setCheckState(0, QtCore.Qt.CheckState.Checked)
             else:
@@ -594,43 +584,9 @@ class PostProcessDialog:
                 | QtCore.Qt.ItemFlag.ItemIsEnabled
             )
 
-            item.setText(col_num, str(index))
-            item.setText(col_op_label, op.Label)
-            if tc := toolControllerForOp(op):
-                tcLabel = tc.Label
-                toolNumber = str(tc.ToolNumber)
-            else:
-                tcLabel = "???"
-                toolNumber = ""
-            item.setText(col_tool_number, toolNumber)
-            item.setTextAlignment(col_tool_number, QtCore.Qt.AlignCenter)
-            item.setText(col_tc, tcLabel)
-            coolant = coolantModeForOp(op)
-            coolantString = coolant if coolant != "None" else ""
-            item.setText(col_coolant, coolantString)
-            item.setText(col_time, getattr(op, "CycleTime", ""))
-
-        for column in range(tree.columnCount()):
-            tree.resizeColumnToContents(column)
-
         tree.resizeColumnToContents(0)
         tree.blockSignals(False)
         self._update_ops_tab_label()
-
-    def _populate_output(self):
-        """Set fields of Output tab while init dialog"""
-        from Path.Post.Utils import FilenameGenerator
-
-        # set Output folder
-        generator = FilenameGenerator(job=self.job)
-        gen_filenames = generator.generate_filenames()
-        resolved_dir = os.path.dirname(next(gen_filenames))
-        self.dialog.lineEditOutputLocation.setText(resolved_dir)
-
-        # set Filename template
-        jobPostProcessorOutputFile = getattr(self.job, "PostProcessorOutputFile", "") or ""
-        default_template = os.path.basename(jobPostProcessorOutputFile)
-        self.dialog.lineEditFilenameTemplate.setText(default_template)
 
     def _get_dialog_overrides(self):
         """Collect current dialog widget values as an overrides dict.
@@ -1320,9 +1276,7 @@ class PostProcessDialog:
 
     def _browse_output_location(self):
         dlg = self.dialog
-        current = dlg.lineEditOutputLocation.text().strip()
-        if not os.path.exists(os.path.dirname(current)) and not os.path.exists(current):
-            current = os.path.dirname(FreeCAD.activeDocument().FileName)
+        current = dlg.lineEditOutputLocation.text().strip() or ""
         folder = QtGui.QFileDialog.getExistingDirectory(
             dlg,
             translate("CAM_Post", "Select Output Folder"),

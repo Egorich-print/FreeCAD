@@ -87,7 +87,6 @@ generate_from_py(SurfaceOfExtrusion)
 generate_from_py(SurfaceOfRevolution)
 generate_from_py(PartFeature)
 generate_from_py(AttachExtension)
-generate_from_py(PreviewExtension)
 generate_from_py(Part2DObject)
 generate_from_py(AttachEngine)
 generate_from_py(TopoShape)
@@ -359,8 +358,6 @@ SET(Python_SRCS
     PartFeaturePyImp.cpp
     AttachExtension.pyi
     AttachExtensionPyImp.cpp
-    PreviewExtension.pyi
-    PreviewExtensionPyImp.cpp
     Part2DObject.pyi
     Part2DObjectPyImp.cpp
     AttachEngine.pyi

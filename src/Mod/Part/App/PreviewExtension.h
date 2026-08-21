@@ -53,15 +53,7 @@ public:
 
     void updatePreview();
 
-    /// Marks the preview as stale so the next updatePreview() recomputes it.
-    void invalidatePreview();
-
-    /// Decides whether a property change left the preview stale. Follows the object's
-    /// own recompute by default, so overriding it is how a feature keeps its preview
-    /// through changes it does not depend on.
-    virtual bool mustRecomputePreview();
-
-    PyObject* getExtensionPyObject() override;
+    virtual bool mustRecomputePreview() const;
 
 protected:
     void extensionOnChanged(const App::Property* prop) override;
@@ -110,10 +102,6 @@ class PreviewExtensionPythonT: public ExtensionT
 public:
     PreviewExtensionPythonT() = default;
     ~PreviewExtensionPythonT() override = default;
-
-protected:
-    App::DocumentObjectExecReturn* recomputePreview() override;
-    bool mustRecomputePreview() override;
 };
 
 using PreviewExtensionPython = App::ExtensionPythonT<PreviewExtensionPythonT<PreviewExtension>>;

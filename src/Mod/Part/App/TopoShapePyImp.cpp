@@ -502,13 +502,11 @@ PyObject* TopoShapePy::dumpToString(PyObject* args) const
         PyErr_SetString(PartExceptionOCCError, e.what());
         return nullptr;
     }
-#if OCC_VERSION_HEX < 0x080000
     catch (Standard_Failure& e) {
 
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
         return nullptr;
     }
-#endif
 }
 
 PyObject* TopoShapePy::exportBrepToString(PyObject* args) const
@@ -531,12 +529,10 @@ PyObject* TopoShapePy::exportBrepToString(PyObject* args) const
         PyErr_SetString(PartExceptionOCCError, e.what());
         return nullptr;
     }
-#if OCC_VERSION_HEX < 0x080000
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
         return nullptr;
     }
-#endif
 }
 
 PyObject* TopoShapePy::importBrep(PyObject* args)
@@ -623,12 +619,10 @@ PyObject* TopoShapePy::importBrepFromString(PyObject* args)
         PyErr_SetString(PartExceptionOCCError, e.what());
         return nullptr;
     }
-#if OCC_VERSION_HEX < 0x080000
     catch (Standard_Failure& e) {
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
         return nullptr;
     }
-#endif
 
     Py_Return;
 }

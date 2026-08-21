@@ -80,6 +80,7 @@ std::vector<TopoDS_Edge> DrawProjectSplit::getEdgesForWalker(TopoDS_Shape shape,
     BRepBuilderAPI_Copy BuilderCopy(shape);
     TopoDS_Shape copyShape = BuilderCopy.Shape();
 
+    gp_Pnt inputCenter(0, 0, 0);
     TopoDS_Shape scaledShape;
     scaledShape = ShapeUtils::scaleShape(copyShape,
                                        scale);
@@ -702,7 +703,7 @@ int DrawProjectSplit::isSubset(const TopoDS_Edge &edge0, const TopoDS_Edge &edge
     }
     std::vector<TopoDS_Edge> commonEdgeList;
     TopExp_Explorer edges(aRes, TopAbs_EDGE);
-    for (; edges.More(); edges.Next()) {
+    for (int i = 1; edges.More(); edges.Next(), i++) {
         commonEdgeList.push_back(TopoDS::Edge(edges.Current()));
     }
     if (commonEdgeList.empty()) {
@@ -739,7 +740,7 @@ std::vector<TopoDS_Edge> DrawProjectSplit::fuseEdges(const TopoDS_Edge &edge0, c
         return edgeList;     //empty result
     }
     TopExp_Explorer edges(aRes, TopAbs_EDGE);
-    for (; edges.More(); edges.Next()) {
+    for (int i = 1; edges.More(); edges.Next(), i++) {
         edgeList.push_back(TopoDS::Edge(edges.Current()));
     }
     return edgeList;

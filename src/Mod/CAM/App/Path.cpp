@@ -29,8 +29,6 @@
 #include <Base/Writer.h>
 #include <Mod/CAM/App/PathSegmentWalker.h>
 
-#include <numbers>
-
 #include "Path.h"
 
 
@@ -39,78 +37,21 @@ using namespace Base;
 
 TYPESYSTEM_SOURCE(Path::Toolpath, Base::Persistence)
 
-namespace
-{
-bool isRapidCommand(const std::string& name)
-{
-    return name == "G0" || name == "G00";
-}
-
-bool isLinearCommand(const std::string& name)
-{
-    return isRapidCommand(name) || name == "G1" || name == "G01";
-}
-
-bool isArcCommand(const std::string& name)
-{
-    return name == "G2" || name == "G02" || name == "G3" || name == "G03";
-}
-
-Vector3d getNextPosition(const Path::Command& command, const Vector3d& last, bool absolute)
-{
-    if (absolute) {
-        return command.getPlacement(last).getPosition();
-    }
-    return last + command.getPlacement().getPosition();
-}
-
-double getArcLength(
-    const Path::Command& command,
-    const Vector3d& last,
-    const Vector3d& next,
-    bool absoluteCenter
-)
-{
-    Vector3d center = absoluteCenter ? command.getCenter() : last + command.getCenter();
-    Vector3d next0(next);
-    next0.z = 0.0;
-    Vector3d last0(last);
-    last0.z = 0.0;
-    Vector3d center0(center);
-    center0.z = 0.0;
-
-    double radius = (last0 - center0).Length();
-    double angle = (next0 - center0).GetAngle(last0 - center0);
-    Vector3d normal = (last0 - center0) % (next0 - center0);
-    if (normal.z < 0.0) {
-        if (command.Name == "G3" || command.Name == "G03") {
-            angle = std::numbers::pi * 2 - angle;
-        }
-    }
-    else if (normal.z > 0.0) {
-        if (command.Name == "G2" || command.Name == "G02") {
-            angle = std::numbers::pi * 2 - angle;
-        }
-    }
-    else if (angle == 0.0) {
-        angle = std::numbers::pi * 2;
-    }
-
-    return angle * radius;
-}
-}  // namespace
-
 Toolpath::Toolpath()
 {}
 
 Toolpath::Toolpath(const Toolpath& otherPath)
-    : vpcCommands(otherPath.vpcCommands)
+    : vpcCommands(otherPath.vpcCommands.size())
     , center(otherPath.center)
 {
+    *this = otherPath;
     recalculate();
 }
 
-Toolpath::~Toolpath() = default;
+Toolpath::~Toolpath()
+{
+    clear();
+}
 
 Toolpath& Toolpath::operator=(const Toolpath& otherPath)
 {
@@ -118,7 +59,14 @@ Toolpath& Toolpath::operator=(const Toolpath& otherPath)
         return *this;
     }
 
-    vpcCommands = otherPath.vpcCommands;
+    clear();
+    vpcCommands.resize(otherPath.vpcCommands.size());
+    int i = 0;
+    for (std::vector<Command*>::const_iterator it = otherPath.vpcCommands.begin();
+         it != otherPath.vpcCommands.end();
+         ++it, i++) {
+        vpcCommands[i] = new Command(**it);
+    }
     center = otherPath.center;
     recalculate();
     return *this;
@@ -126,13 +74,17 @@ Toolpath& Toolpath::operator=(const Toolpath& otherPath)
 
 void Toolpath::clear()
 {
+    for (std::vector<Command*>::iterator it = vpcCommands.begin(); it != vpcCommands.end(); ++it) {
+        delete (*it);
+    }
     vpcCommands.clear();
     recalculate();
 }
 
 void Toolpath::addCommand(const Command& Cmd)
 {
-    vpcCommands.push_back(Cmd);
+    Command* tmp = new Command(Cmd);
+    vpcCommands.push_back(tmp);
     recalculate();
 }
 
@@ -141,8 +93,9 @@ void Toolpath::insertCommand(const Command& Cmd, int pos)
     if (pos == -1) {
         addCommand(Cmd);
     }
-    else if (pos >= 0 && pos <= static_cast<int>(vpcCommands.size())) {
-        vpcCommands.insert(vpcCommands.begin() + pos, Cmd);
+    else if (pos <= static_cast<int>(vpcCommands.size())) {
+        Command* tmp = new Command(Cmd);
+        vpcCommands.insert(vpcCommands.begin() + pos, tmp);
     }
     else {
         throw Base::IndexError("Index not in range");
@@ -153,9 +106,10 @@ void Toolpath::insertCommand(const Command& Cmd, int pos)
 void Toolpath::deleteCommand(int pos)
 {
     if (pos == -1) {
-        pos = static_cast<int>(vpcCommands.size()) - 1;
+        // delete(*vpcCommands.rbegin()); // causes crash
+        vpcCommands.pop_back();
     }
-    if (pos >= 0 && pos < static_cast<int>(vpcCommands.size())) {
+    else if (pos <= static_cast<int>(vpcCommands.size())) {
         vpcCommands.erase(vpcCommands.begin() + pos);
     }
     else {
@@ -171,32 +125,23 @@ double Toolpath::getLength()
     }
     double l = 0;
     Vector3d last(0, 0, 0);
-    bool absolute = true;
-    bool absoluteCenter = false;
-    for (const auto& command : vpcCommands) {
-        const std::string& name = command.Name;
-        Vector3d next = getNextPosition(command, last, absolute);
-        if (isLinearCommand(name)) {
+    Vector3d next;
+    for (std::vector<Command*>::const_iterator it = vpcCommands.begin(); it != vpcCommands.end();
+         ++it) {
+        std::string name = (*it)->Name;
+        next = (*it)->getPlacement(last).getPosition();
+        if ((name == "G0") || (name == "G00") || (name == "G1") || (name == "G01")) {
             // straight line
             l += (next - last).Length();
             last = next;
         }
-        else if (isArcCommand(name)) {
+        else if ((name == "G2") || (name == "G02") || (name == "G3") || (name == "G03")) {
             // arc
-            l += getArcLength(command, last, next, absoluteCenter);
+            Vector3d center = (*it)->getCenter();
+            double radius = center.Length();
+            double angle = (next - last - center).GetAngle(-center);
+            l += angle * radius;
             last = next;
-        }
-        else if (name == "G90") {
-            absolute = true;
-        }
-        else if (name == "G91") {
-            absolute = false;
-        }
-        else if (name == "G90.1") {
-            absoluteCenter = true;
-        }
-        else if (name == "G91.1") {
-            absoluteCenter = false;
         }
     }
     return l;
@@ -230,22 +175,23 @@ double Toolpath::getCycleTime(double hFeed, double vFeed, double hRapid, double 
     double time = 0;
     bool verticalMove = false;
     Vector3d last(0, 0, 0);
-    bool absolute = true;
-    bool absoluteCenter = false;
-    for (const auto& command : vpcCommands) {
-        const std::string& name = command.Name;
-        float feedrate = hFeed;
+    Vector3d next;
+    for (std::vector<Command*>::const_iterator it = vpcCommands.begin(); it != vpcCommands.end();
+         ++it) {
+        std::string name = (*it)->Name;
+        float feedrate = (*it)->getParam("F");
 
         l = 0;
         verticalMove = false;
-        Vector3d next = getNextPosition(command, last, absolute);
+        feedrate = hFeed;
+        next = (*it)->getPlacement(last).getPosition();
 
         if (last.z != next.z) {
             verticalMove = true;
             feedrate = vFeed;
         }
 
-        if (isRapidCommand(name)) {
+        if ((name == "G0") || (name == "G00")) {
             // Rapid Move
             l += (next - last).Length();
             feedrate = hRapid;
@@ -253,25 +199,16 @@ double Toolpath::getCycleTime(double hFeed, double vFeed, double hRapid, double 
                 feedrate = vRapid;
             }
         }
-        else if (name == "G1" || name == "G01") {
+        else if ((name == "G1") || (name == "G01")) {
             // Feed Move
             l += (next - last).Length();
         }
-        else if (isArcCommand(name)) {
+        else if ((name == "G2") || (name == "G02") || (name == "G3") || (name == "G03")) {
             // Arc Move
-            l += getArcLength(command, last, next, absoluteCenter);
-        }
-        else if (name == "G90") {
-            absolute = true;
-        }
-        else if (name == "G91") {
-            absolute = false;
-        }
-        else if (name == "G90.1") {
-            absoluteCenter = true;
-        }
-        else if (name == "G91.1") {
-            absoluteCenter = false;
+            Vector3d center = (*it)->getCenter();
+            double radius = center.Length();
+            double angle = (next - last - center).GetAngle(-center);
+            l += angle * radius;
         }
 
         time += l / feedrate;
@@ -283,7 +220,8 @@ double Toolpath::getCycleTime(double hFeed, double vFeed, double hRapid, double 
 class BoundBoxSegmentVisitor: public PathSegmentVisitor
 {
 public:
-    BoundBoxSegmentVisitor() = default;
+    BoundBoxSegmentVisitor()
+    {}
 
     void g0(
         int id,
@@ -351,8 +289,8 @@ public:
 private:
     void processPts(const std::deque<Base::Vector3d>& pts)
     {
-        for (const auto& it : pts) {
-            processPt(it);
+        for (std::deque<Base::Vector3d>::const_iterator it = pts.begin(); pts.end() != it; ++it) {
+            processPt(*it);
         }
     }
     void processPt(const Base::Vector3d& pt)
@@ -375,19 +313,21 @@ Base::BoundBox3d Toolpath::getBoundBox() const
     return visitor.bb;
 }
 
-static void bulkAddCommand(const std::string& gcodestr, std::vector<Command>& commands, bool& inches)
+static void bulkAddCommand(const std::string& gcodestr, std::vector<Command*>& commands, bool& inches)
 {
-    Command cmd;
-    cmd.setFromGCode(gcodestr);
-    if ("G20" == cmd.Name) {
+    Command* cmd = new Command();
+    cmd->setFromGCode(gcodestr);
+    if ("G20" == cmd->Name) {
         inches = true;
+        delete cmd;
     }
-    else if ("G21" == cmd.Name) {
+    else if ("G21" == cmd->Name) {
         inches = false;
+        delete cmd;
     }
     else {
         if (inches) {
-            cmd.scaleBy(25.4);
+            cmd->scaleBy(25.4);
         }
         commands.push_back(cmd);
     }
@@ -450,8 +390,9 @@ void Toolpath::setFromGCode(const std::string instr)
 std::string Toolpath::toGCode() const
 {
     std::string result;
-    for (const auto& command : vpcCommands) {
-        result += command.toGCode();
+    for (std::vector<Command*>::const_iterator it = vpcCommands.begin(); it != vpcCommands.end();
+         ++it) {
+        result += (*it)->toGCode();
         result += "\n";
     }
     return result;
@@ -480,14 +421,14 @@ void Toolpath::recalculate()  // recalculates the path cache
         // handle the first waypoint differently
         bool first=true;
 
-        for(std::vector<Command>::const_iterator it = vpcCommands.begin();it!=vpcCommands.end();++it) {
+        for(std::vector<Command*>::const_iterator it = vpcCommands.begin();it!=vpcCommands.end();++it) {
             if(first){
-                Last = toFrame(it->getPlacement());
+                Last = toFrame((*it)->getPlacement());
                 first = false;
             }else{
-                Base::Placement p = it->getPlacement();
+                Base::Placement p = (*it)->getPlacement();
                 KDL::Frame Next = toFrame(p);
-                std::string name = it->Name;
+                std::string name = (*it)->Name;
                 Vector3d zaxis(0,0,1);
 
                 if ( (name == "G0") || (name == "G1") || (name == "G01") ) {
@@ -497,7 +438,7 @@ void Toolpath::recalculate()  // recalculates the path cache
                     Last = Next;
                 } else if ( (name == "G2") || (name == "G02") ) {
                     // clockwise arc
-                    Vector3d fcenter = it->getCenter();
+                    Vector3d fcenter = (*it)->getCenter();
                     KDL::Vector center(fcenter.x,fcenter.y,fcenter.z);
                     Vector3d fnorm;
                     p.getRotation().multVec(zaxis,fnorm);
@@ -548,7 +489,7 @@ void Toolpath::Save(Writer& writer) const
         writer.incInd();
         saveCenter(writer, center);
         for (unsigned int i = 0; i < getSize(); i++) {
-            vpcCommands[i].Save(writer);
+            vpcCommands[i]->Save(writer);
         }
         writer.decInd();
     }
@@ -598,7 +539,8 @@ void Toolpath::Restore(XMLReader& reader)
 
 void Toolpath::addCommandNoRecalc(const Command& Cmd)
 {
-    vpcCommands.push_back(Cmd);
+    Command* tmp = new Command(Cmd);
+    vpcCommands.push_back(tmp);
     // No recalculate here
 }
 

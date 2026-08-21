@@ -83,7 +83,7 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../../App/FeatureHelix.cpp" line="210"/>
       <source>Fusion Tolerance for the Helix, increase if helical shape does not merge nicely with part.</source>
-      <translation>Tolerance spojení pro šroubovici – tuto hodnotu zvyšte, pokud se tvar šroubovice nespojuje s dílem správně.</translation>
+      <translation type="unfinished">Fusion Tolerance for the Helix, increase if helical shape does not merge nicely with part.</translation>
     </message>
     <message>
       <location filename="../../../InvoluteGearFeature.py" line="108"/>
@@ -159,12 +159,12 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../Command.cpp" line="1602"/>
       <source>Additive Loft</source>
-      <translation>Aditivní loft</translation>
+      <translation type="unfinished">Additive Loft</translation>
     </message>
     <message>
       <location filename="../../Command.cpp" line="1603"/>
       <source>Lofts the selected sketch or profile along a path and adds it to the body</source>
-      <translation>Vytvoří vyprofilovaný tvar z vybraného náčrtu nebo profilu podél dráhy a přidá ho k tělesu</translation>
+      <translation type="unfinished">Lofts the selected sketch or profile along a path and adds it to the body</translation>
     </message>
   </context>
   <context>
@@ -177,7 +177,7 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../Command.cpp" line="1502"/>
       <source>Additive Pipe</source>
-      <translation>Aditivní potrubí</translation>
+      <translation type="unfinished">Additive Pipe</translation>
     </message>
     <message>
       <location filename="../../Command.cpp" line="1503"/>
@@ -609,7 +609,7 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../Command.cpp" line="2387"/>
       <source>Polar Pattern</source>
-      <translation>Kruhové pole</translation>
+      <translation type="unfinished">Polar Pattern</translation>
     </message>
     <message>
       <location filename="../../Command.cpp" line="2388"/>
@@ -931,15 +931,15 @@ aby se zabránilo sebe.</translation>
       <translation>Použít booleovské operace</translation>
     </message>
     <message>
-      <location filename="../../DlgActiveBody.cpp" line="102"/>
       <location filename="../../CommandBody.cpp" line="225"/>
+      <location filename="../../DlgActiveBody.cpp" line="102"/>
       <source>Add a Body</source>
       <translation>Přidat těleso</translation>
     </message>
     <message>
       <location filename="../../CommandBody.cpp" line="528"/>
       <source>Migrate legacy Part Design features to bodies</source>
-      <translation>Přenese starší prvky návrhu součástí do těles</translation>
+      <translation type="unfinished">Migrate legacy Part Design features to bodies</translation>
     </message>
     <message>
       <location filename="../../CommandBody.cpp" line="770"/>
@@ -974,7 +974,7 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../TaskMultiTransformParameters.cpp" line="350"/>
       <source>Polar Pattern</source>
-      <translation>Kruhové pole</translation>
+      <translation type="unfinished">Polar Pattern</translation>
     </message>
     <message>
       <location filename="../../TaskMultiTransformParameters.cpp" line="389"/>
@@ -992,12 +992,12 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../Workbench.cpp" line="56"/>
       <source>Edge Tools</source>
-      <translation>Nástroje hrany</translation>
+      <translation type="unfinished">Edge Tools</translation>
     </message>
     <message>
       <location filename="../../Workbench.cpp" line="57"/>
       <source>Boolean Tools</source>
-      <translation>Booleovské nástroje</translation>
+      <translation type="unfinished">Boolean Tools</translation>
     </message>
     <message>
       <location filename="../../Workbench.cpp" line="58"/>
@@ -1040,7 +1040,7 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../../InvoluteGearFeature.ui" line="125"/>
       <source>High precision</source>
-      <translation>Vysoká přesnost</translation>
+      <translation type="unfinished">High precision</translation>
     </message>
     <message>
       <location filename="../../../InvoluteGearFeature.ui" line="139"/>
@@ -1057,12 +1057,12 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../../InvoluteGearFeature.ui" line="152"/>
       <source>External gear</source>
-      <translation>Vnější ozubení</translation>
+      <translation type="unfinished">External gear</translation>
     </message>
     <message>
       <location filename="../../../InvoluteGearFeature.ui" line="179"/>
       <source>Addendum coefficient</source>
-      <translation>Addendum koeficient</translation>
+      <translation type="unfinished">Addendum coefficient</translation>
     </message>
     <message>
       <location filename="../../../InvoluteGearFeature.ui" line="199"/>
@@ -1072,12 +1072,12 @@ aby se zabránilo sebe.</translation>
     <message>
       <location filename="../../../InvoluteGearFeature.ui" line="219"/>
       <source>Root fillet coefficient</source>
-      <translation>Koeficient zaoblení kořene</translation>
+      <translation type="unfinished">Root fillet coefficient</translation>
     </message>
     <message>
       <location filename="../../../InvoluteGearFeature.ui" line="239"/>
       <source>Profile shift coefficient</source>
-      <translation>Koeficient posunu profilu</translation>
+      <translation type="unfinished">Profile shift coefficient</translation>
     </message>
   </context>
   <context>
@@ -1091,13 +1091,13 @@ aby se zabránilo sebe.</translation>
       <location filename="../../DlgActiveBody.ui" line="20"/>
       <source>To create a new Part Design object, there must be an active body in the document.
 Select a body from below, or create a new body.</source>
-      <translation>Chcete-li vytvořit nový objekt v nástroji Part Design, musí být v dokumentu aktivní těleso.
-Vyberte těleso z níže uvedeného seznamu nebo vytvořte nové těleso.</translation>
+      <translation type="unfinished">To create a new Part Design object, there must be an active body in the document.
+Select a body from below, or create a new body.</translation>
     </message>
     <message>
       <location filename="../../DlgActiveBody.ui" line="35"/>
       <source>Create New Body</source>
-      <translation>Vytvořit nové tělo</translation>
+      <translation type="unfinished">Create New Body</translation>
     </message>
     <message>
       <location filename="../../DlgActiveBody.cpp" line="53"/>
@@ -3253,7 +3253,7 @@ měřena ve stanoveném směru</translation>
     <message>
       <location filename="../../CommandBody.cpp" line="1100"/>
       <source>Move Feature After…</source>
-      <translation>Přesunout prvek za…</translation>
+      <translation type="unfinished">Move Feature After…</translation>
     </message>
     <message>
       <location filename="../../CommandBody.cpp" line="1101"/>
@@ -3331,11 +3331,11 @@ měřena ve stanoveném směru</translation>
       <translation>V tomto dokumentu nejsou platné roviny</translation>
     </message>
     <message>
-      <location filename="../../ViewProviderDatum.cpp" line="259"/>
+      <location filename="../../ViewProviderShapeBinder.cpp" line="97"/>
+      <location filename="../../Command.cpp" line="1178"/>
       <location filename="../../ViewProvider.cpp" line="137"/>
       <location filename="../../SketchWorkflow.cpp" line="763"/>
-      <location filename="../../Command.cpp" line="1178"/>
-      <location filename="../../ViewProviderShapeBinder.cpp" line="98"/>
+      <location filename="../../ViewProviderDatum.cpp" line="259"/>
       <source>A dialog is already open in the task panel</source>
       <translation>Dialog je již otevřen v panelu úloh</translation>
     </message>
@@ -3385,11 +3385,11 @@ měřena ve stanoveném směru</translation>
       <translation>Vyberte pouze jeden prvek v aktivním tělese.</translation>
     </message>
     <message>
-      <location filename="../../ViewProviderDatum.cpp" line="260"/>
+      <location filename="../../ViewProviderShapeBinder.cpp" line="98"/>
+      <location filename="../../Command.cpp" line="1179"/>
       <location filename="../../ViewProvider.cpp" line="138"/>
       <location filename="../../SketchWorkflow.cpp" line="764"/>
-      <location filename="../../Command.cpp" line="1179"/>
-      <location filename="../../ViewProviderShapeBinder.cpp" line="99"/>
+      <location filename="../../ViewProviderDatum.cpp" line="260"/>
       <source>Close this dialog?</source>
       <translation type="unfinished">Close this dialog?</translation>
     </message>
@@ -3617,14 +3617,14 @@ To může vést k neočekávaným výsledkům.</translation>
       <translation>Není možné vytvořit odečtový prvek bez základního prvku</translation>
     </message>
     <message>
-      <location filename="../../TaskTransformedParameters.cpp" line="433"/>
       <location filename="../../TaskRevolutionParameters.cpp" line="208"/>
+      <location filename="../../TaskTransformedParameters.cpp" line="433"/>
       <source>Vertical sketch axis</source>
       <translation>Svislá skicovací osa</translation>
     </message>
     <message>
-      <location filename="../../TaskTransformedParameters.cpp" line="434"/>
       <location filename="../../TaskRevolutionParameters.cpp" line="209"/>
+      <location filename="../../TaskTransformedParameters.cpp" line="434"/>
       <source>Horizontal sketch axis</source>
       <translation>Vodorovná skicovací osa</translation>
     </message>
@@ -3678,10 +3678,10 @@ For legacy documents with Part Design objects lacking a body, use the migrate fu
       <translation>Pro použití tohoto prvku je potřebné, aby patřil k objektu díl v dokumentu.</translation>
     </message>
     <message>
-      <location filename="../../ViewProviderTransformed.cpp" line="67"/>
       <location filename="../../ViewProviderDressUp.cpp" line="64"/>
+      <location filename="../../ViewProviderShapeBinder.cpp" line="227"/>
+      <location filename="../../ViewProviderTransformed.cpp" line="67"/>
       <location filename="../../ViewProvider.cpp" line="94"/>
-      <location filename="../../ViewProviderShapeBinder.cpp" line="228"/>
       <source>Edit %1</source>
       <translation>Upravit %1</translation>
     </message>
@@ -3731,9 +3731,9 @@ This feature is broken and cannot be edited.</source>
 This feature is broken and cannot be edited.</translation>
     </message>
     <message>
-      <location filename="../../ViewProviderShapeBinder.cpp" line="223"/>
+      <location filename="../../ViewProviderShapeBinder.cpp" line="222"/>
       <source>Edit Shape Binder</source>
-      <translation>Upravit pořadač tvarů</translation>
+      <translation type="unfinished">Edit Shape Binder</translation>
     </message>
     <message>
       <location filename="../../ViewProviderShapeBinder.cpp" line="352"/>
@@ -3885,7 +3885,7 @@ Přesto můžete provést migraci kdykoliv později pomocí 'PartDesign -&gt; Mi
     <message>
       <location filename="../../../SprocketFeature.ui" line="26"/>
       <source>Number of teeth</source>
-      <translation>Počet zubů</translation>
+      <translation type="unfinished">Number of teeth</translation>
     </message>
     <message>
       <location filename="../../../SprocketFeature.ui" line="52"/>
@@ -4614,23 +4614,23 @@ nad 90: větší poloměr díry ve spodní části</translation>
       <translation>Booleovskou operaci nelze provést s neplatným základním tvarem</translation>
     </message>
     <message>
-      <location filename="../../../App/FeatureFillet.cpp" line="142"/>
-      <location filename="../../../App/FeatureBoolean.cpp" line="266"/>
-      <location filename="../../../App/FeatureChamfer.cpp" line="196"/>
-      <location filename="../../../App/FeatureExtrude.cpp" line="822"/>
-      <location filename="../../../App/FeatureExtrude.cpp" line="838"/>
-      <location filename="../../../App/FeatureExtrude.cpp" line="851"/>
-      <location filename="../../../App/FeatureLoft.cpp" line="334"/>
-      <location filename="../../../App/FeatureLoft.cpp" line="378"/>
+      <location filename="../../../App/FeatureRevolved.cpp" line="217"/>
       <location filename="../../../App/FeatureHelix.cpp" line="420"/>
       <location filename="../../../App/FeatureHelix.cpp" line="442"/>
       <location filename="../../../App/FeatureHelix.cpp" line="488"/>
+      <location filename="../../../App/FeatureFillet.cpp" line="142"/>
+      <location filename="../../../App/FeatureHole.cpp" line="2091"/>
+      <location filename="../../../App/FeatureChamfer.cpp" line="196"/>
+      <location filename="../../../App/FeatureDraft.cpp" line="335"/>
+      <location filename="../../../App/FeatureExtrude.cpp" line="822"/>
+      <location filename="../../../App/FeatureExtrude.cpp" line="838"/>
+      <location filename="../../../App/FeatureExtrude.cpp" line="851"/>
       <location filename="../../../App/FeaturePipe.cpp" line="537"/>
       <location filename="../../../App/FeaturePipe.cpp" line="571"/>
       <location filename="../../../App/FeaturePipe.cpp" line="600"/>
-      <location filename="../../../App/FeatureDraft.cpp" line="335"/>
-      <location filename="../../../App/FeatureHole.cpp" line="2091"/>
-      <location filename="../../../App/FeatureRevolved.cpp" line="217"/>
+      <location filename="../../../App/FeatureBoolean.cpp" line="266"/>
+      <location filename="../../../App/FeatureLoft.cpp" line="334"/>
+      <location filename="../../../App/FeatureLoft.cpp" line="378"/>
       <source>Result has multiple solids: enable 'Allow Compound' in the active body.</source>
       <translation type="unfinished">Result has multiple solids: enable 'Allow Compound' in the active body.</translation>
     </message>
@@ -4666,9 +4666,9 @@ nad 90: větší poloměr díry ve spodní části</translation>
     </message>
     <message>
       <location filename="../../../App/FeatureExtrude.cpp" line="813"/>
+      <location filename="../../../App/FeaturePipe.cpp" line="592"/>
       <location filename="../../../App/FeatureLoft.cpp" line="371"/>
       <location filename="../../../App/FeaturePrimitive.cpp" line="141"/>
-      <location filename="../../../App/FeaturePipe.cpp" line="592"/>
       <source>Resulting shape is not a solid</source>
       <translation>Výsledný tvar není plné těleso</translation>
     </message>
@@ -4745,8 +4745,8 @@ nad 90: větší poloměr díry ve spodní části</translation>
       <translation>Vytvoření selhalo, protože směr je kolmý k normálovému vektoru náčrtu</translation>
     </message>
     <message>
-      <location filename="../../../App/FeatureExtrude.cpp" line="518"/>
       <location filename="../../../App/FeatureRevolved.cpp" line="132"/>
+      <location filename="../../../App/FeatureExtrude.cpp" line="518"/>
       <source>Creating a face from sketch failed</source>
       <translation>Vytvoření plochy z náčrtu selhalo</translation>
     </message>
@@ -4966,8 +4966,8 @@ Protínání entit náčrtu nebo několika ploch v náčrtu není povoleno pro v
       <translation>Vytvoření plochy z náčrtu selhalo</translation>
     </message>
     <message>
-      <location filename="../../../App/FeatureLoft.cpp" line="304"/>
       <location filename="../../../App/FeaturePipe.cpp" line="500"/>
+      <location filename="../../../App/FeatureLoft.cpp" line="304"/>
       <source>Loft: Failed to create shell</source>
       <translation>Nepodařilo se vytvořit obal</translation>
     </message>

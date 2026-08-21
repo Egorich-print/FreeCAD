@@ -628,7 +628,7 @@ bool QuantitySpinBox::isNormalized()
             return true;
         }
     }
-    catch (const Base::Exception&) {
+    catch (Base::Exception) {
         // The exception is intentionally ignored here and should be handled,
         // when the value is assigned
         return false;

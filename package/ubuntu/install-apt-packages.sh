@@ -44,7 +44,6 @@ packages=(
   libocct-data-exchange-dev
   libocct-ocaf-dev
   libocct-visualization-dev
-  libopencamlib-dev
   libproj-dev
   libpcl-dev
   libpyside6-dev
@@ -71,7 +70,6 @@ packages=(
   python3-lark
   python3-markdown
   python3-matplotlib
-  python3-opencamlib
   python3-packaging
   python3-pip
   python3-ply

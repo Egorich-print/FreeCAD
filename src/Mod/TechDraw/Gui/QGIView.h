@@ -183,6 +183,8 @@ public:
 
     bool pseudoEventFilter(QGraphicsItem *watched, QEvent *event) { return sceneEventFilter(watched, event); }
 
+    static bool hasSelectedChildren(QGIView* parent);
+
     bool isExporting() const;
 
     virtual void setMovableFlag();
@@ -204,7 +206,6 @@ protected:
     virtual void updateFrameVisibility();
     bool shouldShowFromViewProvider() const;
     bool shouldShowFrame() const;
-    bool isViewSelected() const;
 
     Base::Reference<ParameterGrp> getParmGroupCol();
 

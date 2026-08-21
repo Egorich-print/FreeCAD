@@ -337,7 +337,7 @@ class SH3DImporter:
             self._refresh()
 
         if App.GuiUp and self.preferences["FIT_VIEW"]:
-            Gui.ActiveDocument.ActiveView.sendMessage("ViewFit")
+            Gui.SendMsgToActiveView("ViewFit")
 
         # Importing <doorOrWindow> elements ...
         if self.preferences["IMPORT_DOORS_AND_WINDOWS"]:

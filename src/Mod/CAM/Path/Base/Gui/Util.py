@@ -33,7 +33,6 @@ __author__ = "sliptonic (Brad Collette)"
 __url__ = "https://www.freecad.org"
 __doc__ = "A collection of helper and utility functions for the CAM GUI."
 
-translate = FreeCAD.Qt.translate
 
 if False:
     Path.Log.setLevel(Path.Log.Level.DEBUG, Path.Log.thisModule())
@@ -120,7 +119,7 @@ class QuantitySpinBox(QtCore.QObject):
             onBeforeChange ... an optional callback being executed before the value of the property is changed
     """
 
-    def __init__(self, widget, obj, prop, onBeforeChange=None, setToolTip=False):
+    def __init__(self, widget, obj, prop, onBeforeChange=None):
         super().__init__()
         Path.Log.track(widget)
         self.widget = widget
@@ -138,8 +137,6 @@ class QuantitySpinBox(QtCore.QObject):
         except AttributeError:
             # Widget may not have this signal
             pass
-        if setToolTip:
-            self.setToolTipWidget()
 
     def onFormulaDialogStateChanged(self, isOpen):
         """
@@ -185,13 +182,6 @@ class QuantitySpinBox(QtCore.QObject):
                 self.valid = False
         else:
             self.valid = False
-
-    def setToolTipWidget(self):
-        """set tooltip from property description"""
-        if self.valid:
-            self.widget.setToolTip(
-                translate("App::Property", self.obj.getDocumentationOfProperty(self.prop))
-            )
 
     def expression(self):
         """returns the expression if one is bound to the property"""
@@ -247,16 +237,6 @@ class QuantitySpinBox(QtCore.QObject):
             if prop == self.prop:
                 return exp
         return None
-
-    def refresh_expression_icon(self, has_expression):
-        line_edit = self.widget.lineEdit()
-        icon_label = line_edit.findChild(QtGui.QLabel)
-        if icon_label is None:
-            return
-        icon_height = QtGui.QFontMetrics(line_edit.font()).height()
-        name = "bound-expression.svg" if has_expression else "bound-expression-unset.svg"
-        pixmap = FreeCADGui.getIcon(":/icons/" + name).pixmap(icon_height, icon_height)
-        icon_label.setPixmap(pixmap)
 
 
 class PropertyComboBox(QtCore.QObject):
@@ -476,7 +456,7 @@ def getDocNode():
         if tw.topLevelItemCount() != 1 or tw.topLevelItem(0).text(0) != "Application":
             continue
         toptree = tw.topLevelItem(0)
-        for i in range(toptree.childCount()):
+        for i in range(0, toptree.childCount()):
             docitem = toptree.child(i)
             if docitem.text(0) == doc:
                 return docitem
@@ -488,12 +468,12 @@ def disableItem(item):
     Dropflag = QtCore.Qt.ItemFlag.ItemIsDropEnabled
     item.setFlags(item.flags() & ~Dragflag)
     item.setFlags(item.flags() & ~Dropflag)
-    for idx in range(item.childCount()):
+    for idx in range(0, item.childCount()):
         disableItem(item.child(idx))
 
 
 def findItem(docitem, objname):
-    for i in range(docitem.childCount()):
+    for i in range(0, docitem.childCount()):
         if docitem.child(i).text(0) == objname:
             return docitem.child(i)
         res = findItem(docitem.child(i), objname)

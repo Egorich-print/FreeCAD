@@ -90,7 +90,6 @@ struct DocumentP
     bool _isModified;
     bool _isTransacting;
     bool _isActive;
-    bool _restoredGuiDocument;
     bool _changeViewTouchDocument;
     bool _editWantsRestore;
     bool _editWantsRestorePrevious;
@@ -465,7 +464,6 @@ Document::Document(App::Document* pcDocument, Application* app)
     d->_isModified = false;
     d->_isTransacting = false;
     d->_isActive = false;
-    d->_restoredGuiDocument = false;
     d->_pcAppWnd = app;
     d->_pcDocument = pcDocument;
     d->_editViewProvider = nullptr;
@@ -1949,7 +1947,6 @@ void Document::Save(Base::Writer& writer) const
  */
 void Document::Restore(Base::XMLReader& reader)
 {
-    d->_restoredGuiDocument = false;
     reader.addFile("GuiDocument.xml", this);
 
     // hide all elements to avoid to update the 3d view when loading data files
@@ -1966,8 +1963,6 @@ void Document::Restore(Base::XMLReader& reader)
  */
 void Document::RestoreDocFile(Base::Reader& reader)
 {
-    d->_restoredGuiDocument = true;
-
     // We must create an XML parser to read from the input stream
     std::shared_ptr<Base::XMLReader> localreader
         = std::make_shared<Base::XMLReader>("GuiDocument.xml", reader);
@@ -2088,15 +2083,6 @@ void Document::slotFinishRestoreDocument(const App::Document& doc)
         ViewProvider* viewProvider = getViewProvider(act);
         if (viewProvider && viewProvider->isDerivedFrom<ViewProviderDocumentObject>()) {
             signalActivatedObject(*(static_cast<ViewProviderDocumentObject*>(viewProvider)));
-        }
-    }
-
-    if (!d->_restoredGuiDocument) {
-        for (auto* mdiView : getMDIViews()) {
-            if (auto* view3D = freecad_cast<View3DInventor*>(mdiView)) {
-                view3D->viewAll();
-                break;
-            }
         }
     }
 

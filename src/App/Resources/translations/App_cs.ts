@@ -21,7 +21,7 @@
     <message>
       <location filename="../../Expression.cpp" line="587"/>
       <source>Null</source>
-      <translation>Null</translation>
+      <translation type="unfinished">Null</translation>
     </message>
   </context>
   <context>
@@ -42,7 +42,7 @@ The user should then click the Refresh button in the main toolbar.
 </source>
       <translation>
 Uživateli je doporučeno kliknout pravým tlačítkem myši na kořenovou položku dokumentu a vybrat "Označit k přepočítání".
-Poté by měl uživatel kliknout na tlačítko "Přepočítat" na hlavním panelu nástrojů.
+Poté by měl uživatel kliknout na tlačítko "Refresh" na hlavním panelu nástrojů.
 </translation>
     </message>
   </context>
@@ -81,7 +81,7 @@ Poté by měl uživatel kliknout na tlačítko "Přepočítat" na hlavním panel
     <message>
       <location filename="../../Datums.cpp" line="273"/>
       <source>Origin-Point</source>
-      <translation>Počáteční bod</translation>
+      <translation type="unfinished">Origin-Point</translation>
     </message>
   </context>
   <context>
@@ -90,7 +90,8 @@ Poté by měl uživatel kliknout na tlačítko "Přepočítat" na hlavním panel
       <location filename="../../Link.cpp" line="119"/>
       <source>Stores the last user choice of whether to apply CopyOnChange setup to all link
 that links to the same configurable object</source>
-      <translation>Uloží poslední volbu uživatele, pokud se má nastavení "Kopírovat při změně" použít na všechny odkazy, které odkazují na stejný konfigurovatelný objekt</translation>
+      <translation type="unfinished">Stores the last user choice of whether to apply CopyOnChange setup to all link
+that links to the same configurable object</translation>
     </message>
   </context>
 </TS>

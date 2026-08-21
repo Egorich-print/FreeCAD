@@ -34,17 +34,14 @@ GCODE_MOVE_ARC = GCODE_MOVE_CW + GCODE_MOVE_CCW
 # Canned drilling cycles
 GCODE_MOVE_DRILL = ["G73", "G81", "G82", "G83", "G85"]
 
-# Additional drilling cycles
-GCODE_DRILL_EXTENDED = ["G74", "G84", "G88", "G89"]
-
 # Cutting moves (feed moves and arcs)
 GCODE_MOVE_MILL = GCODE_MOVE_STRAIGHT + GCODE_MOVE_ARC
 
 # All cutting moves (feed moves, arcs, and drill cycles)
-GCODE_MOVE = GCODE_MOVE_STRAIGHT + GCODE_MOVE_ARC + GCODE_MOVE_DRILL + GCODE_DRILL_EXTENDED
+GCODE_MOVE = GCODE_MOVE_STRAIGHT + GCODE_MOVE_ARC + GCODE_MOVE_DRILL
 
 # All move commands (cutting moves + rapid)
-GCODE_MOVE_ALL = GCODE_MOVE_LINE + GCODE_MOVE_ARC + GCODE_MOVE_DRILL + GCODE_DRILL_EXTENDED
+GCODE_MOVE_ALL = GCODE_MOVE_LINE + GCODE_MOVE_ARC + GCODE_MOVE_DRILL
 
 # =============================================================================
 # G-Code Modal Commands
@@ -62,6 +59,9 @@ GCODE_CUTTER_COMPENSATION = ["G40", "G41", "G42"]
 
 # Canned cycle cancel
 GCODE_CYCLE_CANCEL = ["G80"]
+
+# Additional drilling cycles
+GCODE_DRILL_EXTENDED = ["G74", "G84", "G88", "G89"]
 
 # Probing
 GCODE_PROBE = ["G38.2"]
@@ -207,6 +207,3 @@ GCODE_NON_CONFORMING = (
 # i.e. allow any gcode
 # absence for false; any non-false presence for true: use "True"
 ANNOT_ALLOW_UNSUPPORTED = "allow_unsupported"
-
-# G0 moves which can be replaced by G1 with No-Engagement Feed
-ANNOT_NO_ENGAGEMENT_FEED = "NoEngagementFeed"

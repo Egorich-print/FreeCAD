@@ -257,7 +257,7 @@ void Gui::PreferencePackManager::importConfig(
 
 // TODO(Shvedov): Is this suitable place for this method? It is more generic,
 // and maybe more suitable place at Application?
-std::vector<std::filesystem::path> Gui::PreferencePackManager::modPaths()
+std::vector<std::filesystem::path> Gui::PreferencePackManager::modPaths() const
 {
     auto userModPath = fs::path(Base::FileInfo::stringToPath(App::Application::getUserAppDataDir()))
         / "Mod";

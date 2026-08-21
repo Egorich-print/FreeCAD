@@ -407,8 +407,3 @@ function(target_compile_warn_error ProjectName)
     endif()
 endfunction()
 
-function(disable_occt8_deprecation_warnings)
-    if (OCC_VERSION_STRING VERSION_GREATER_EQUAL "8.0.0")
-        add_compile_definitions(-DOCCT_NO_DEPRECATED)
-    endif()
-endfunction()

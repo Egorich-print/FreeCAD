@@ -1753,12 +1753,13 @@ bool MeshOutput::SaveSMF(std::ostream& out) const
 
     // vertices
     Base::Vector3f pt;
-    for (const auto& rPoint : rPoints) {
+    std::size_t index = 0;
+    for (auto it = rPoints.begin(); it != rPoints.end(); ++it, ++index) {
         if (this->apply_transform) {
-            pt = this->_transform * rPoint;
+            pt = this->_transform * *it;
         }
         else {
-            pt.Set(rPoint.x, rPoint.y, rPoint.z);
+            pt.Set(it->x, it->y, it->z);
         }
 
         out << "v " << pt.x << " " << pt.y << " " << pt.z << '\n';

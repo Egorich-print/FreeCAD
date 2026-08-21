@@ -74,6 +74,7 @@
         <item row="2" column="1">
          <widget class="Gui::QuantitySpinBox" name="dspAngleIn"/>
         </item>
+
         <item row="3" column="0">
          <widget class="QLabel" name="labelExtendIn">
           <property name="text">
@@ -84,6 +85,7 @@
         <item row="3" column="1">
          <widget class="Gui::QuantitySpinBox" name="dspExtendIn"/>
         </item>
+
         <item row="4" column="0">
          <widget class="QLabel" name="labelOffsetIn">
           <property name="text">
@@ -160,6 +162,7 @@
         <item row="2" column="1">
          <widget class="Gui::QuantitySpinBox" name="dspAngleOut"/>
         </item>
+
         <item row="3" column="0">
          <widget class="QLabel" name="labelExtendOut">
           <property name="text">
@@ -170,6 +173,7 @@
         <item row="3" column="1">
          <widget class="Gui::QuantitySpinBox" name="dspExtendOut"/>
         </item>
+
         <item row="4" column="0">
          <widget class="QLabel" name="labelOffsetOut">
           <property name="text">

@@ -224,9 +224,6 @@ class ToolControllerEditor(object):
             self.controller.leadOutFeed, obj, "LeadOutFeed"
         )
         self.rampFeed = PathGuiUtil.QuantitySpinBox(self.controller.rampFeed, obj, "RampFeed")
-        self.noEngagementFeed = PathGuiUtil.QuantitySpinBox(
-            self.controller.noEngagementFeed, obj, "NoEngagementFeed"
-        )
         self.vertRapid = PathGuiUtil.QuantitySpinBox(self.controller.vertRapid, obj, "VertRapid")
         self.horizRapid = PathGuiUtil.QuantitySpinBox(self.controller.horizRapid, obj, "HorizRapid")
 
@@ -302,7 +299,6 @@ class ToolControllerEditor(object):
             self.leadInFeed.widget,
             self.leadOutFeed.widget,
             self.rampFeed.widget,
-            self.noEngagementFeed.widget,
             self.vertFeed.widget,
             self.vertRapid.widget,
             self.controller.spindleSpeed,
@@ -321,7 +317,6 @@ class ToolControllerEditor(object):
             self.leadInFeed.updateWidget()
             self.leadOutFeed.updateWidget()
             self.rampFeed.updateWidget()
-            self.noEngagementFeed.updateWidget()
             self.vertFeed.updateWidget()
             self.vertRapid.updateWidget()
             self.controller.spindleSpeed.setValue(tc.SpindleSpeed)
@@ -346,7 +341,6 @@ class ToolControllerEditor(object):
             self.leadInFeed.updateProperty()
             self.leadOutFeed.updateProperty()
             self.rampFeed.updateProperty()
-            self.noEngagementFeed.updateProperty()
             self.horizRapid.updateProperty()
             self.vertRapid.updateProperty()
             if tc.SpindleSpeed != self.controller.spindleSpeed.value():
@@ -387,7 +381,6 @@ class ToolControllerEditor(object):
         self.leadInFeed.widget.textChanged.connect(self.changed)
         self.leadOutFeed.widget.textChanged.connect(self.changed)
         self.rampFeed.widget.textChanged.connect(self.changed)
-        self.noEngagementFeed.widget.textChanged.connect(self.changed)
         self.vertRapid.widget.textChanged.connect(self.changed)
         self.horizRapid.widget.textChanged.connect(self.changed)
         self.controller.spindleSpeed.editingFinished.connect(self.changed)

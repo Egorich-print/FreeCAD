@@ -24,8 +24,7 @@ import FreeCAD
 import FreeCADGui
 import Path
 from PySide.QtCore import QT_TRANSLATE_NOOP
-from PathScripts import PathUtils
-from Path.Base.Util import toolControllerForOp
+import PathScripts.PathUtils as PathUtils
 from Path.Main.Gui.Editor import CodeEditor
 
 translate = FreeCAD.Qt.translate
@@ -34,12 +33,14 @@ translate = FreeCAD.Qt.translate
 class GCodeEditorDialog(QtGui.QDialog):
     tool = None
 
-    def __init__(self, PathObj, parent=None, readOnly=True, toolVisibility=None):
-        self.commands = PathUtils.getPathWithPlacement(PathObj).Commands
-        self.tool = getattr(toolControllerForOp(PathObj), "Tool", None)
-        self.toolInitVisibility = getattr(self.tool, "Visibility", False)  # keep tool visibility
+    def __init__(self, PathObj, parent=FreeCADGui.getMainWindow()):
+        self.PathObj = PathObj
+        if hasattr(PathObj, "ToolController"):
+            self.tool = PathObj.ToolController.Tool
+        else:
+            self.tool = None
 
-        QtGui.QDialog.__init__(self, parent or FreeCADGui.getMainWindow())
+        QtGui.QDialog.__init__(self, parent)
         self.setWindowTitle(translate("CAM", "CAM Inspect"))
         layout = QtGui.QVBoxLayout(self)
 
@@ -58,11 +59,6 @@ class GCodeEditorDialog(QtGui.QDialog):
         self.selectionobj.ViewObject.NormalColor = highlightcolor
 
         self.editor = CodeEditor()
-        if readOnly:
-            self.editor.setTextInteractionFlags(
-                QtGui.Qt.TextInteractionFlag.TextSelectableByMouse
-                | QtGui.Qt.TextInteractionFlag.TextSelectableByKeyboard
-            )  #  make a QPlainTextEdit read-only while keeping the text cursor visible
         layout.addWidget(self.editor)
 
         # Note
@@ -77,37 +73,16 @@ class GCodeEditorDialog(QtGui.QDialog):
         lab.setWordWrap(True)
         layout.addWidget(lab)
 
-        bottomFrame = QtGui.QFrame()
-        bottomFrame.setLayout(QtGui.QHBoxLayout())
-        layout.addWidget(bottomFrame)
-
-        self.chkTool = QtGui.QCheckBox("Show tool")
-        if self.tool is not None:
-            self.chkTool.setText(translate("CAM_Inspect", "Show tool: %s") % self.tool.Label)
-            self.chkTool.setToolTip(
-                translate(
-                    "CAM_Inspect",
-                    "Show tool shape\nG-code under the cursor defines tool shape placement",
-                )
-            )
-            if toolVisibility is not None:
-                self.chkTool.setChecked(toolVisibility)
-            else:
-                self.chkTool.setChecked(self.tool.Visibility)
-            bottomFrame.layout().addWidget(self.chkTool)
-
         self.buttons = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.Close,
             QtCore.Qt.Horizontal,
             self,
         )  # add Close button
-        self.buttons.rejected.connect(self.reject)
-        bottomFrame.layout().addWidget(self.buttons)
 
-        self.editor.cursorPositionChanged.connect(self.highlightpath)
-        self.editor.cursorPositionChanged.connect(self.toolPlacement)
+        layout.addWidget(self.buttons)
+        self.buttons.rejected.connect(self.reject)
+        self.editor.selectionChanged.connect(self.highlightpath)
         self.finished.connect(self.cleanup)
-        self.chkTool.checkStateChanged.connect(self.toolVisibility)
 
         prefs = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/CAM")
         Xpos = int(prefs.GetString("inspecteditorX", "0"))
@@ -118,18 +93,14 @@ class GCodeEditorDialog(QtGui.QDialog):
         self.resize(width, height)
 
     def cleanup(self):
-        """Prepare for exit from Inspect"""
         prefs = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/CAM")
         prefs.SetString("inspecteditorX", str(self.x()))
         prefs.SetString("inspecteditorY", str(self.y()))
         prefs.SetString("inspecteditorW", str(self.width()))
         prefs.SetString("inspecteditorH", str(self.height()))
         FreeCAD.ActiveDocument.removeObject(self.selectionobj.Name)
-        if self.tool:
-            self.tool.Visibility = self.toolInitVisibility  # restore tool visibility
 
     def highlightpath(self):
-        """Set highlighted path"""
         cursor = self.editor.textCursor()
         sp = cursor.selectionStart()
         ep = cursor.selectionEnd()
@@ -138,41 +109,43 @@ class GCodeEditorDialog(QtGui.QDialog):
         cursor.setPosition(ep)
         endrow = cursor.blockNumber()
 
+        commands = PathUtils.getPathWithPlacement(self.PathObj).Commands
+
         # Derive the starting position for the first selected command
-        x, y, z = self.getPosition(self.commands[max(0, startrow - 1) :: -1])
-        firstrapid = Path.Command("G0", {"X": x, "Y": y, "Z": z})
-        selectionCommands = [firstrapid] + self.commands[startrow : endrow + 1]
-        self.selectionobj.Path = Path.Path()
-        if len(selectionCommands) > 1:
-            self.selectionobj.Path = Path.Path(selectionCommands)
-        self.selectionobj.ViewObject.StartIndex = 1  # hide first rapid move
-
-    def toolPlacement(self):
-        """Set tool placement"""
-        if self.tool is not None and self.tool.Visibility:
-            line_number = self.editor.textCursor().blockNumber()
-            self.tool.Placement.Base = self.getPosition(self.commands[line_number::-1])
-
-    def toolVisibility(self):
-        """Update tool visibility"""
-        if self.tool is not None:
-            self.tool.Visibility = self.chkTool.isChecked()
-
-    def getPosition(self, commands):
-        """Define position from commands list"""
-        x = y = z = None
-        for cmd in commands:
-            x = cmd.x if x is None and cmd.x is not None else x
-            y = cmd.y if y is None and cmd.y is not None else y
-            z = cmd.z if z is None and cmd.z is not None else z
-            if x is not None and y is not None and z is not None:
+        prevX = prevY = prevZ = None
+        prevcommands = commands[:startrow]
+        prevcommands.reverse()
+        for c in prevcommands:
+            if prevX is None:
+                if c.Parameters.get("X") is not None:
+                    prevX = c.Parameters.get("X")
+            if prevY is None:
+                if c.Parameters.get("Y") is not None:
+                    prevY = c.Parameters.get("Y")
+            if prevZ is None:
+                if c.Parameters.get("Z") is not None:
+                    prevZ = c.Parameters.get("Z")
+            if prevX is not None and prevY is not None and prevZ is not None:
                 break
+        if prevX is None:
+            prevX = 0.0
+        if prevY is None:
+            prevY = 0.0
+        if prevZ is None:
+            prevZ = 0.0
 
-        x = 0 if x is None else x
-        y = 0 if y is None else y
-        z = 0 if z is None else z
+        # Build a new path with selection
+        p = Path.Path()
+        firstrapid = Path.Command("G0", {"X": prevX, "Y": prevY, "Z": prevZ})
 
-        return x, y, z
+        selectionpath = [firstrapid] + commands[startrow : endrow + 1]
+        p.Commands = selectionpath
+        self.selectionobj.Path = p
+
+        if self.tool is not None:
+            self.tool.Placement.Base.x = prevX
+            self.tool.Placement.Base.y = prevY
+            self.tool.Placement.Base.z = prevZ
 
 
 def show(obj):

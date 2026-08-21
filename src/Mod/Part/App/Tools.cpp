@@ -160,7 +160,8 @@ Handle(Geom_Surface) Part::Tools::makeSurface(
 
     TColStd_ListIteratorOfListOfTransient anIt(theBoundaries);
     if (anIt.More()) {
-        for (; anIt.More(); anIt.Next()) {
+        int i = 1;
+        for (; anIt.More(); anIt.Next(), i++) {
             const Handle(Standard_Transient) & aCur = anIt.Value();
             if (aCur.IsNull()) {
                 assert(0);

@@ -57,7 +57,7 @@ class SprocketDialog(qt.QDialog):
             self.gc.angle.value(),
             not self.gc.split.currentIndex(),
         )
-        FreeCADGui.ActiveDocument.ActiveView.sendMessage("ViewFit")
+        FreeCADGui.SendMsgToActiveView("ViewFit")
         return super(SprocketDialog, self).accept()
 
 

@@ -107,13 +107,6 @@ public:
         ToShape,
     };
 
-    enum class StartMode
-    {
-        ProfilePlane = 0,
-        Offset = 1,
-        Reference = 2,
-    };
-
     enum SelectionMode
     {
         None,

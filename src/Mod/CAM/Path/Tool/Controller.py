@@ -53,7 +53,6 @@ class ToolControllerTemplate:
     LeadOutFeed = "leadoutfeed"
     Name = "name"
     RampFeed = "rampfeed"
-    NoEngagementFeed = "noengagementfeed"
     SpindleDir = "dir"
     SpindleSpeed = "speed"
     ToolNumber = "nr"
@@ -192,16 +191,6 @@ class ToolController:
 
         obj.addProperty(
             "App::PropertySpeed",
-            "NoEngagementFeed",
-            "Feed",
-            QT_TRANSLATE_NOOP(
-                "App::Property",
-                "Feed rate used when the tool is not engaged in material, but is also not retracted",
-            ),
-        )
-
-        obj.addProperty(
-            "App::PropertySpeed",
             "LeadInFeed",
             "Feed",
             QT_TRANSLATE_NOOP("App::Property", "Feed rate for lead-in moves"),
@@ -308,17 +297,6 @@ class ToolController:
             obj.setExpression("LeadOutFeed", "HorizFeed")
             needsRecompute = True
 
-        if not hasattr(obj, "NoEngagementFeed"):
-            obj.addProperty(
-                "App::PropertySpeed",
-                "NoEngagementFeed",
-                "Feed",
-                QT_TRANSLATE_NOOP(
-                    "App::Property",
-                    "Feed rate used when the tool is not engaged in material, but is also not retracted",
-                ),
-            )
-
         if needsRecompute:
             obj.recompute()
 
@@ -353,10 +331,6 @@ class ToolController:
                     )
                 if template.get(ToolControllerTemplate.RampFeed):
                     obj.RampFeed = template.get(ToolControllerTemplate.RampFeed, obj.RampFeed)
-                if template.get(ToolControllerTemplate.NoEngagementFeed):
-                    obj.NoEngagementFeed = template.get(
-                        ToolControllerTemplate.NoEngagementFeed, obj.NoEngagementFeed
-                    )
                 if template.get(ToolControllerTemplate.VertRapid):
                     obj.VertRapid = template.get(ToolControllerTemplate.VertRapid)
                 if template.get(ToolControllerTemplate.HorizRapid):
@@ -414,7 +388,6 @@ class ToolController:
         attrs[ToolControllerTemplate.LeadInFeed] = "%s" % (obj.LeadInFeed)
         attrs[ToolControllerTemplate.LeadOutFeed] = "%s" % (obj.LeadOutFeed)
         attrs[ToolControllerTemplate.RampFeed] = "%s" % (obj.RampFeed)
-        attrs[ToolControllerTemplate.NoEngagementFeed] = "%s" % (obj.NoEngagementFeed)
         attrs[ToolControllerTemplate.VertRapid] = "%s" % (obj.VertRapid)
         attrs[ToolControllerTemplate.HorizRapid] = "%s" % (obj.HorizRapid)
         attrs[ToolControllerTemplate.SpindleSpeed] = obj.SpindleSpeed
