@@ -3,11 +3,34 @@ name = "freecad-android"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
-description = "Thin C-ABI shell for embedding the FreeCAD Rust core in an Android app (Phase 2 grows the JNI surface here)"
+description = "Android shell of the FreeCAD Rust stack: C-ABI probes plus the JNI viewer surface"
 
 [lib]
 name = "freecad_android"
 crate-type = ["cdylib", "rlib"]
 
+[features]
+default = []
+viewer = [
+    "dep:jni",
+    "dep:pollster",
+    "dep:wgpu",
+    "dep:raw-window-handle",
+    "dep:freecad-render",
+    "dep:freecad-io",
+    "dep:freecad-kernel",
+    "dep:freecad-kernel-occt",
+]
+
 [dependencies]
 freecad-core = { workspace = true }
+jni = { version = "0.21", optional = true }
+pollster = { workspace = true, optional = true }
+wgpu = { workspace = true, optional = true }
+raw-window-handle = { version = "0.6", optional = true }
+freecad-render = { workspace = true, optional = true }
+freecad-io = { workspace = true, optional = true }
+freecad-kernel = { workspace = true, optional = true }
+freecad-kernel-occt = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "android")'.build-dependencies]
