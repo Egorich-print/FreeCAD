@@ -1,0 +1,25 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/freecad-core",
+    "crates/freecad-kernel",
+    "crates/freecad-kernel-occt",
+    "crates/freecad-io",
+]
+
+[workspace.package]
+edition = "2024"
+license = "LGPL-2.1-or-later"
+repository = "https://github.com/Egorich-print/FreeCAD"
+
+[workspace.dependencies]
+freecad-core = { path = "crates/freecad-core" }
+freecad-kernel = { path = "crates/freecad-kernel" }
+freecad-io = { path = "crates/freecad-io" }
+cxx = "1"
+cxx-build = "1"
+pollster = "0.4"
+wgpu = "25"
+
+[profile.release]
+lto = "thin"
