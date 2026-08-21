@@ -191,3 +191,29 @@ Discrepancies found while implementing (research-vs-reality notes):
 5. Selection/picking pass (face ranges are already carried end-to-end).
 6. Wire kernel-occt into FreeCAD's own CI as an optional target so the fork
    keeps proving both worlds build.
+
+---
+
+## 10. M2.0 outcome — first vertical slice (2026-08)
+
+Chain `STEP → OCCT → MeshBuffer → wgpu → APK` proven at every link that does
+not require physical hardware:
+
+| Link | Proof |
+|---|---|
+| OCCT sources → Android static libs | `build_occt_ndk.sh` executed on real OCCT V7_9_3: 47 archives, NDK r27.2, API 24, PIC, minimal modules |
+| Static libs → `freecad-kernel-occt` | `OCCT_ROOT=… build_rust.sh arm64-v8a` links 27.5 MB `.so`; toolkit order TKDESTEP→TKernel |
+| STEP bytes → kernel | committed fixture (`demo_part.step`) imports via bytes; 1 solid / 9 faces / validated mesh (desktop test, same shim+OCCT APIs) |
+| MeshBuffer → wgpu | GPU offscreen proof passes on desktop Metal; renderer code is target-independent |
+| .so → APK | Gradle-free assembly signed and verified: badging OK, `zipalign -c -P 16` OK, LOAD align 0x4000 inside the APK |
+| APK → screen | **blocked**: no device/emulator in this environment (`adb devices` empty); exact install/measure commands documented in rust/android/README.md |
+
+New artifacts: `rust/android/build_apk.sh`, `rust/android/app/*`
+(manifest, Java activity, bundled asset), fixture test
+`committed_step_fixture_loads_through_real_occt`.
+
+Honest deviations:
+- Java activity instead of Kotlin (no kotlinc available); shell-only logic,
+  swap is mechanical.
+- Desktop-only proof for the STEP-fixture test: running it under an Android
+  target requires a runtime (blocked with hardware above).
