@@ -217,3 +217,36 @@ Honest deviations:
   swap is mechanical.
 - Desktop-only proof for the STEP-fixture test: running it under an Android
   target requires a runtime (blocked with hardware above).
+
+---
+
+## 11. M2.1 outcome — Android Runtime Proof (2026-08)
+
+The full chain now runs **on an actual Android runtime** (headless ARM64
+emulator, HVF):
+
+```text
+APK installed ✅  (adb install, extractNativeLibs=false)
+Activity launched ✅  (am start -W: Status ok)
+OCCT STEP import ✅  (bundled demo_part.step → OcctBackend, in-process)
+Tessellation ✅  (MeshBuffer uploaded to GPU; ERR_MESH_UPLOAD path unused)
+wgpu backend ✅  (Vulkan adapter bound to the ANativeWindow surface)
+Model visible ✅  (100% of the viewport center row = shaded model pixels)
+Screenshot ✅  (docs/architecture/freecad-android-first-frame.png)
+Device/backend recorded ✅  (see rust/android/README.md device matrix)
+```
+
+Runtime bugs this proof flushed out (all fixed):
+1. `libc++_shared.so` missing at dlopen — STL auto-bundling added.
+2. Top-byte-tagged pointers read as negative `jlong` — handle protocol
+   redefined as "non-zero = success".
+3. Adapter/surface mismatch — surface is created first and passed as
+   `compatible_surface`, guaranteeing a matching backend.
+
+Measured on SwiftShader (software Vulkan): nativeInit 101–168 ms;
+frame throughput is software-bound (~seconds/frame), orbit input
+visibly changes the frame. Hardware-GPU FPS measurement is deferred
+to the first physical-device run.
+
+Next: M3 — minimal interaction + picking (face-ranges already flow
+end-to-end for this purpose).
