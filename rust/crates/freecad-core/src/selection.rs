@@ -123,7 +123,7 @@ mod pick_encoding_tests {
         for (m, f) in [(0u32, 1u32), (3u32, 4095u32), (17u32, 1234u32)] {
             let n = encode_pick_normal(m, f).unwrap();
             let enc = n.map(|c| ((c * 0.5 + 0.5).clamp(0.0, 1.0) * 255.0).round() as u8);
-            let mut px = [enc[0], enc[1], enc[2], 255u8];
+            let px = [enc[0], enc[1], enc[2], 255u8];
             assert_eq!(decode_pick_bytes(px), Some((m, f)), "n={n:?} px={px:?}");
             assert_eq!(decode_pick_bytes([0, 0, 0, 0]), None, "background");
         }

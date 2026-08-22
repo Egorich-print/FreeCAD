@@ -58,7 +58,7 @@ impl Picker {
                 for t in 0..range.triangle_count() {
                     let abs_tri = range.index_start as usize / 3 + t as usize;
                     if let Some(dist) = ray_cast_triangle(input.mesh, abs_tri, origin, dir) {
-                        let better = best.as_ref().map_or(true, |(_, _, d)| dist < *d);
+                        let better = best.as_ref().is_none_or(|(_, _, d)| dist < *d);
                         if better {
                             best = Some((input.mesh_index, range.face_id, dist));
                             best_tri = Some(abs_tri as u32);

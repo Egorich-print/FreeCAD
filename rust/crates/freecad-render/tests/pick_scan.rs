@@ -1,7 +1,7 @@
 //! Scan + low-level diagnostics for the GPU id-buffer picker.
 
 use freecad_render::pick::PickInput;
-use freecad_render::{GpuMesh, OrbitCamera, Picker, TargetSize};
+use freecad_render::{OrbitCamera, Picker, TargetSize};
 
 fn setup() -> (wgpu::Device, wgpu::Queue) {
     let instance = wgpu::Instance::default();
@@ -9,32 +9,6 @@ fn setup() -> (wgpu::Device, wgpu::Queue) {
     let (device, queue) = pollster::block_on(adapter.request_device(&Default::default())).unwrap();
     device.on_uncaptured_error(Box::new(|e| panic!("wgpu: {e}")));
     (device, queue)
-}
-
-fn read_buffer(
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
-    buf: &wgpu::Buffer,
-    size: u64,
-) -> Vec<u8> {
-    let read = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("tmp-read"),
-        size,
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
-        mapped_at_creation: false,
-    });
-    let mut e = device.create_command_encoder(&Default::default());
-    e.copy_buffer_to_buffer(buf, 0, &read, 0, size);
-    queue.submit(Some(e.finish()));
-    let (t, r) = std::sync::mpsc::channel();
-    read.slice(..).map_async(wgpu::MapMode::Read, move |res| {
-        let _ = t.send(res.is_ok());
-    });
-    device.poll(wgpu::PollType::Wait).expect("poll");
-    r.recv().unwrap();
-    let data: Vec<u8> = read.slice(..).get_mapped_range().to_vec();
-    read.unmap();
-    data
 }
 
 #[test]

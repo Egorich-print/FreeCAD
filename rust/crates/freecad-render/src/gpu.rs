@@ -87,10 +87,12 @@ impl GpuMesh {
         &self.vertex_buf
     }
 
+    #[allow(dead_code)]
     pub fn debug_pick_buffer(&self) -> &wgpu::Buffer {
         &self.pick_buf
     }
 
+    #[allow(dead_code)] // reserved for the GPU id-buffer picking path
     pub(crate) fn attach_pick(
         &self,
         render_pass: &mut wgpu::RenderPass<'_>,
@@ -100,6 +102,7 @@ impl GpuMesh {
         render_pass.draw(verts, 0..1);
     }
 
+    #[allow(dead_code)] // reserved for GPU id-buffer refinement
     pub(crate) fn triangle_vertex_positions(&self, triangle: usize) -> Option<[[f32; 3]; 3]> {
         self.source.triangle_at(triangle)
     }
@@ -119,7 +122,7 @@ fn bytemuck_bytes(data: &[f32]) -> &[u8] {
 /// `[position: f32x3][normal: f32x3][triangle_id: u32]` per corner.
 pub(crate) fn build_pick_data(mesh: &MeshBuffer) -> Vec<u8> {
     let mut data: Vec<u8> = Vec::with_capacity(mesh.indices.len() * PICK_STRIDE_BYTES as usize);
-    for (tri, chunk) in mesh.indices.chunks_exact(3).enumerate() {
+    for (tri, chunk) in mesh.indices.as_chunks::<3>().0.iter().enumerate() {
         let tid = (tri as u32).to_ne_bytes();
         for &idx in chunk {
             let idx = idx as usize;
@@ -140,6 +143,53 @@ pub(crate) fn u32_bytes(data: &[u32]) -> &[u8] {
     let len = std::mem::size_of_val(data);
     // Safety invariant: same reasoning as `bytemuck_bytes`.
     unsafe { core::slice::from_raw_parts(data.as_ptr().cast::<u8>(), len) }
+}
+
+/// Vertex layout shared by the lit and picking pipelines.
+#[allow(dead_code)] // reserved for the GPU id-buffer picking path
+pub fn main_vertex_layout() -> wgpu::VertexBufferLayout<'static> {
+    wgpu::VertexBufferLayout {
+        array_stride: VERTEX_STRIDE_BYTES,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &[
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x3,
+                offset: 0,
+                shader_location: 0,
+            },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x3,
+                offset: 12,
+                shader_location: 1,
+            },
+        ],
+    }
+}
+
+/// Vertex layout of the picking pipeline: position + encoded-id normal.
+#[allow(dead_code)] // reserved for the GPU id-buffer picking path
+pub fn pick_vertex_layout() -> wgpu::VertexBufferLayout<'static> {
+    wgpu::VertexBufferLayout {
+        array_stride: PICK_STRIDE_BYTES,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &[
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x3,
+                offset: 0,
+                shader_location: 0,
+            },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x3,
+                offset: 12,
+                shader_location: 1,
+            },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Uint32,
+                offset: 24,
+                shader_location: 2,
+            },
+        ],
+    }
 }
 
 #[cfg(test)]
@@ -165,50 +215,5 @@ mod pick_data_tests {
         // Second triangle's corners carry tid 1.
         let t1_start = 3 * PICK_STRIDE_BYTES as usize;
         assert_eq!(&data[t1_start + 24..t1_start + 28], &1u32.to_ne_bytes());
-    }
-}
-
-/// Vertex layout shared by the lit and picking pipelines.
-pub fn main_vertex_layout() -> wgpu::VertexBufferLayout<'static> {
-    wgpu::VertexBufferLayout {
-        array_stride: VERTEX_STRIDE_BYTES,
-        step_mode: wgpu::VertexStepMode::Vertex,
-        attributes: &[
-            wgpu::VertexAttribute {
-                format: wgpu::VertexFormat::Float32x3,
-                offset: 0,
-                shader_location: 0,
-            },
-            wgpu::VertexAttribute {
-                format: wgpu::VertexFormat::Float32x3,
-                offset: 12,
-                shader_location: 1,
-            },
-        ],
-    }
-}
-
-/// Vertex layout of the picking pipeline: position + encoded-id normal.
-pub fn pick_vertex_layout() -> wgpu::VertexBufferLayout<'static> {
-    wgpu::VertexBufferLayout {
-        array_stride: PICK_STRIDE_BYTES,
-        step_mode: wgpu::VertexStepMode::Vertex,
-        attributes: &[
-            wgpu::VertexAttribute {
-                format: wgpu::VertexFormat::Float32x3,
-                offset: 0,
-                shader_location: 0,
-            },
-            wgpu::VertexAttribute {
-                format: wgpu::VertexFormat::Float32x3,
-                offset: 12,
-                shader_location: 1,
-            },
-            wgpu::VertexAttribute {
-                format: wgpu::VertexFormat::Uint32,
-                offset: 24,
-                shader_location: 2,
-            },
-        ],
     }
 }
