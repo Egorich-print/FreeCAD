@@ -7,6 +7,7 @@ description = "wgpu-based CAD renderer consuming freecad-core meshes (no Coin3D,
 
 [dependencies]
 freecad-core = { workspace = true }
+glam = { workspace = true }
 pollster = { workspace = true }
 wgpu = { workspace = true }
 

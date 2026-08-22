@@ -25,6 +25,7 @@ public class MainActivity extends Activity
     private native void nativeOrbit(long handle, float dx, float dy);
     private native void nativeZoom(long handle, float factor);
     private native int nativeRender(long handle);
+    private native int nativeTap(long handle, float x, float y);
 
     private SurfaceView surfaceView;
     private long handle = 0;
@@ -151,6 +152,16 @@ public class MainActivity extends Activity
                 }
                 lastX = event.getX();
                 lastY = event.getY();
+                break;
+            }
+            case MotionEvent.ACTION_UP: {
+                float dx = event.getX() - lastX;
+                float dy = event.getY() - lastY;
+                if (handle != 0 && Math.hypot(dx, dy) < 12f) {
+                    int face = nativeTap(handle, event.getX(), event.getY());
+                    android.util.Log.i("FreeCAD", "tap at (" + (int) event.getX() + "," +
+                        (int) event.getY() + ") -> face " + face);
+                }
                 break;
             }
             case MotionEvent.ACTION_POINTER_UP: {

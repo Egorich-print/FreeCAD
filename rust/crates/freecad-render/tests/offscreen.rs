@@ -55,7 +55,10 @@ fn offscreen_render_produces_lit_pixels() {
         &color_view,
         &depth_view,
         size,
-        &[RenderItem { mesh: &gpu_mesh }],
+        &[RenderItem {
+            mesh: &gpu_mesh,
+            highlight: None,
+        }],
     );
     encoder.copy_texture_to_buffer(
         color_tex.as_image_copy(),

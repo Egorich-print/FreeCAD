@@ -18,12 +18,15 @@ pub struct TargetSize {
 #[derive(Debug, Clone, Copy)]
 pub struct RenderItem<'a> {
     pub mesh: &'a GpuMesh,
+    /// Optional extracted-face mesh drawn as a solid selection tint.
+    pub highlight: Option<&'a GpuMesh>,
 }
 
 /// Backend-agnostic wgpu renderer: one pipeline, lambert lighting, depth
 /// testing. Consumes [`GpuMesh`] only — it cannot see OCCT or Coin3D types.
 pub struct Renderer {
     pipeline: wgpu::RenderPipeline,
+    highlight_pipeline: wgpu::RenderPipeline,
     camera_buf: wgpu::Buffer,
     bind_group: wgpu::BindGroup,
 }
@@ -45,7 +48,9 @@ impl Renderer {
         let camera_buf = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("fc-camera-uniform"),
             size: std::mem::size_of::<CameraUniform>() as u64,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            usage: wgpu::BufferUsages::UNIFORM
+                | wgpu::BufferUsages::COPY_DST
+                | wgpu::BufferUsages::COPY_SRC,
             mapped_at_creation: false,
         });
 
@@ -131,15 +136,58 @@ impl Renderer {
             cache: None,
         });
 
+        let highlight_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("fc-highlight-pipeline"),
+            layout: Some(&pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vs_main"),
+                buffers: &vertex_buffers,
+                compilation_options: Default::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fs_main"),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: color_format,
+                    blend: Some(wgpu::BlendState::REPLACE),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: Default::default(),
+            }),
+            primitive: Default::default(),
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth24Plus,
+                depth_write_enabled: false,
+                depth_compare: wgpu::CompareFunction::LessEqual,
+                stencil: Default::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 2,
+                    slope_scale: 2.0,
+                    clamp: 0.0,
+                },
+            }),
+            multisample: Default::default(),
+            multiview: None,
+            cache: None,
+        });
+
         Self {
             pipeline,
+            highlight_pipeline,
             camera_buf,
             bind_group,
         }
     }
 
+    /// Debug/test access for uniform round-trip verification.
+    pub fn debug_camera_buffer(&self) -> &wgpu::Buffer {
+        &self.camera_buf
+    }
+
     pub fn update_camera(&self, queue: &wgpu::Queue, camera: &OrbitCamera, aspect: f32) {
-        let view_proj = camera.view_matrix().mul(&camera.projection_matrix(aspect));
+        // Algebraic order matters: projection applied last => leftmost factor.
+        let view_proj = camera.projection_matrix(aspect).mul(&camera.view_matrix());
         let uniform = CameraUniform {
             view_proj,
             light_dir: normalize4([0.45, 0.75, 0.55]),
@@ -181,6 +229,15 @@ impl Renderer {
         pass.set_bind_group(0, &self.bind_group, &[]);
         for item in items {
             item.mesh.attach(&mut pass);
+        }
+
+        // Selection tint on top; depth bias keeps the overlay visible.
+        pass.set_pipeline(&self.highlight_pipeline);
+        for item in items {
+            if let Some(highlight) = item.highlight {
+                // extract_face output is per-corner expanded: plain attach works.
+                highlight.attach(&mut pass);
+            }
         }
         let _ = size;
     }
@@ -233,6 +290,18 @@ fn normalize4(v: [f32; 3]) -> [f32; 4] {
     } else {
         [v[0] / len, v[1] / len, v[2] / len, 0.0]
     }
+}
+
+pub fn camera_uniform_bytes_debug(view_proj: Mat4) -> Vec<u8> {
+    camera_uniform_bytes(view_proj)
+}
+
+pub fn camera_uniform_bytes(view_proj: Mat4) -> Vec<u8> {
+    let uniform = CameraUniform {
+        view_proj,
+        light_dir: normalize4([0.45, 0.75, 0.55]),
+    };
+    zeroable_bytes(&uniform).to_vec()
 }
 
 fn zeroable_bytes<T>(value: &T) -> &[u8] {

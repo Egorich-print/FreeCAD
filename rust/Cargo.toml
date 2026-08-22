@@ -23,6 +23,7 @@ freecad-io = { path = "crates/freecad-io" }
 cxx = "1"
 cxx-build = "1"
 pollster = "0.4"
+glam = "0.29"
 wgpu = "25"
 
 [profile.release]

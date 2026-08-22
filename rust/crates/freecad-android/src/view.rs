@@ -9,7 +9,11 @@ use std::ptr::NonNull;
 use freecad_io::{Format, load_bytes};
 use freecad_kernel::GeometryKernel;
 use freecad_kernel_occt::OcctBackend;
-use freecad_render::{GpuMesh, OrbitCamera, RenderItem, Renderer, TargetSize, create_depth_view};
+use freecad_render::pick::PickInput;
+use freecad_render::{
+    GpuMesh, OrbitCamera, Picker, RenderItem, Renderer, TargetSize, clear_color_texture,
+    create_depth_view,
+};
 
 use jni::JNIEnv;
 use jni::objects::{JByteArray, JClass, JObject};
@@ -53,7 +57,10 @@ struct Viewer {
     depth_size: TargetSize,
     depth: wgpu::TextureView,
     renderer: Renderer,
+    picker: Picker,
     meshes: Vec<GpuMesh>,
+    mesh_buffers: Vec<MeshBuffer>,
+    selected: Option<(usize, u32)>,
     camera: OrbitCamera,
     native_window: *mut core::ffi::c_void,
 }
@@ -198,7 +205,10 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
         depth_size: size,
         depth,
         renderer,
+        picker: Picker::new(&device),
         meshes,
+        mesh_buffers,
+        selected: None,
         camera,
         native_window: window,
     });
@@ -250,6 +260,40 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeZoom(
     with_viewer(handle, |v| v.camera.zoom(factor as f64));
 }
 
+/// Tap at screen pixel: resolves the face under the cursor and stores the
+/// selection. Returns the picked face id or -1 on miss.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeTap(
+    _env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+    x: jfloat,
+    y: jfloat,
+) -> jint {
+    with_viewer(handle, |v| {
+        let inputs: Vec<PickInput> = v
+            .mesh_buffers
+            .iter()
+            .enumerate()
+            .map(|(i, m)| PickInput {
+                mesh_index: i,
+                mesh: m,
+            })
+            .collect();
+        match v.picker.pick(&v.camera, size_of(v), &inputs, x, y) {
+            Some(hit) => {
+                v.selected = Some((hit.mesh_index, hit.face_id));
+                hit.face_id as jint
+            }
+            None => {
+                v.selected = None;
+                -1
+            }
+        }
+    })
+    .unwrap_or(-1)
+}
+
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(
     _env: JNIEnv,
@@ -299,7 +343,15 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(
         let items: Vec<RenderItem<'_>> = viewer
             .meshes
             .iter()
-            .map(|m| RenderItem { mesh: m })
+            .enumerate()
+            .map(|(i, m)| RenderItem {
+                mesh: m,
+                highlight: viewer.selected.filter(|s| s.0 == i).and_then(|(_, face)| {
+                    let face_mesh =
+                        freecad_core::selection::extract_face(&viewer.mesh_buffers[i], face)?;
+                    GpuMesh::from_mesh_buffer(&viewer.device, &face_mesh).ok()
+                }),
+            })
             .collect();
         let mut encoder = viewer.device.create_command_encoder(&Default::default());
         viewer

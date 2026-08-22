@@ -248,7 +248,10 @@ fn redraw(state: &mut ViewerState) {
     let items: Vec<RenderItem<'_>> = state
         .meshes
         .iter()
-        .map(|m| RenderItem { mesh: m })
+        .map(|m| RenderItem {
+            mesh: m,
+            highlight: None,
+        })
         .collect();
     let mut encoder = state.device.create_command_encoder(&Default::default());
     state
