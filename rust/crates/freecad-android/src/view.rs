@@ -20,9 +20,17 @@ use raw_window_handle::{
 use wgpu::SurfaceTargetUnsafe;
 
 const STATUS_OK: i32 = 0;
+// nativeInit failure codes (returned as 0 handle; logged by Java).
 const ERR_KERNEL: i32 = -1;
 const ERR_MESH_EMPTY: i32 = -2;
-const ERR_GPU: i32 = -3;
+const ERR_WINDOW: i32 = -3;
+const ERR_SURFACE_CREATE: i32 = -4;
+const ERR_ADAPTER: i32 = -5;
+const ERR_DEVICE: i32 = -6;
+const ERR_MESH_UPLOAD: i32 = -7;
+// nativeRender failure codes.
+const RENDER_NO_SURFACE: i32 = -31;
+const RENDER_GET_TEXTURE: i32 = -33;
 
 unsafe extern "C" {
     // libandroid.so — retained reference, released in Viewer::destroy.
@@ -88,34 +96,24 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
     // its own retained reference which Viewer::destroy releases.
     let window = unsafe { ANativeWindow_fromSurface(env.get_raw(), surface.as_raw()) };
     if window.is_null() {
-        return ERR_GPU as jlong;
+        return ERR_WINDOW as jlong;
     }
 
     let release_window = || unsafe { ANativeWindow_release(window) };
 
     let (mesh_buffers, bounds_min, bounds_max) = match load_meshes(&bytes) {
         Ok(ok) => ok,
-        Err(code) => {
+        Err(_) => {
             release_window();
-            return code as jlong;
+            return 0;
         }
     };
 
     let instance = wgpu::Instance::default();
-    let adapter = match pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
-        compatible_surface: None,
-        ..Default::default()
-    })) {
-        Ok(adapter) => adapter,
-        Err(_) => {
-            release_window();
-            return ERR_GPU as jlong;
-        }
-    };
 
     let Some(window_ptr) = NonNull::new(window) else {
         release_window();
-        return ERR_GPU as jlong;
+        return ERR_WINDOW as jlong;
     };
     let handle = AndroidNdkWindowHandle::new(window_ptr);
     // Safety invariant: the retained ANativeWindow outlives the Surface
@@ -128,7 +126,18 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
         Ok(surface) => surface,
         Err(_) => {
             release_window();
-            return ERR_GPU as jlong;
+            return ERR_SURFACE_CREATE as jlong;
+        }
+    };
+
+    let adapter = match pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+        compatible_surface: Some(&surface),
+        ..Default::default()
+    })) {
+        Ok(adapter) => adapter,
+        Err(_) => {
+            release_window();
+            return ERR_ADAPTER as jlong;
         }
     };
 
@@ -140,7 +149,7 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
             Ok(pair) => pair,
             Err(_) => {
                 release_window();
-                return ERR_GPU as jlong;
+                return 0;
             }
         };
 
@@ -165,10 +174,16 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
     let renderer = Renderer::new(&device, format);
     let depth = create_depth_view(&device, size);
 
-    let meshes: Vec<GpuMesh> = mesh_buffers
-        .iter()
-        .filter_map(|m| GpuMesh::from_mesh_buffer(&device, m).ok())
-        .collect();
+    let mut meshes = Vec::new();
+    for m in &mesh_buffers {
+        match GpuMesh::from_mesh_buffer(&device, m) {
+            Ok(gpu) => meshes.push(gpu),
+            Err(_) => {
+                release_window();
+                return ERR_MESH_UPLOAD as jlong;
+            }
+        }
+    }
 
     let mut camera = OrbitCamera::default();
     camera.frame(bounds_min, bounds_max);
@@ -194,7 +209,7 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
 /// access is exclusive (single UI thread) and destruction happens exactly once
 /// in nativeDestroy.
 fn with_viewer<R>(handle: jlong, f: impl FnOnce(&mut Viewer) -> R) -> Option<R> {
-    if handle <= 0 {
+    if handle == 0 {
         return None;
     }
     // SAFETY: see above.
@@ -207,7 +222,7 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeDestroy(
     _class: JClass,
     handle: jlong,
 ) {
-    if handle > 0 {
+    if handle != 0 {
         let mut viewer = unsafe { Box::from_raw(handle as *mut Viewer) };
         viewer.surface.take();
         unsafe { ANativeWindow_release(viewer.native_window) };
@@ -241,7 +256,7 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(
     _class: JClass,
     handle: jlong,
 ) -> jint {
-    let mut result = ERR_GPU;
+    let mut result = RENDER_NO_SURFACE;
     with_viewer(handle, |viewer| {
         let Some(surface) = viewer.surface.as_ref() else {
             return;
@@ -258,7 +273,20 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(
 
         let frame = match surface.get_current_texture() {
             Ok(frame) => frame,
-            Err(_) => return,
+            // Transient on emulators/software rasterizers: skip this frame.
+            Err(wgpu::SurfaceError::Timeout) | Err(wgpu::SurfaceError::Outdated) => {
+                result = STATUS_OK;
+                return;
+            }
+            Err(err) => {
+                result = match err {
+                    wgpu::SurfaceError::Lost => -34,
+                    wgpu::SurfaceError::OutOfMemory => -35,
+
+                    _ => RENDER_GET_TEXTURE,
+                };
+                return;
+            }
         };
         let view = frame.texture.create_view(&Default::default());
         let size = TargetSize { width, height };

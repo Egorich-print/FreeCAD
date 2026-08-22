@@ -51,9 +51,20 @@ cp "$build/dex/classes.dex" "$build/stage/"
 cp "$app_dir/assets/demo_part.step" "$build/stage/assets/"
 cp "$so_src" "$build/stage/lib/$abi/"
 
+readelf="$ndk/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf"
+if "$readelf" -d "$so_src" | grep -q "libc++_shared"; then
+  stl_src="$ndk/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-v8a/libc++_shared.so"
+  [ -f "$stl_src" ] || stl_src="$ndk/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so"
+  [ -f "$stl_src" ] || die "libc++_shared.so needed but not found in NDK sysroot"
+  cp "$stl_src" "$build/stage/lib/$abi/"
+  log "bundled libc++_shared.so (dynamic STL detected)"
+else
+  log ".so is self-contained (static libc++)"
+fi
+
 log "4/6 aapt2 link (manifest + assets, no res)"
 (cd "$build/stage" && zip -q -rX unsigned.apk classes.dex assets)
-(cd "$build/stage" && zip -q -rX -0 unsigned.apk "lib/$abi/libfreecad_android.so")
+(cd "$build/stage" && zip -q -rX -0 unsigned.apk lib)
 "$bt/aapt2" link \
   -I "$platform" \
   --manifest "$app_dir/AndroidManifest.xml" \

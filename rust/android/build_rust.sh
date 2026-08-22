@@ -44,7 +44,9 @@ export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER="$clangxx"
 export CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER="$clangxx"
 
 # 16 KB page alignment is mandatory for Play distribution (Nov 2025+).
-export RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384"
+# -static-libstdc++ makes the NDK clang++ driver embed libc++ statically so
+# the APK needs no libc++_shared.so next to our library.
+export RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-static-libstdc++"
 
 features=""
 packages="-p freecad-android"
@@ -57,6 +59,7 @@ else
 fi
 
 log "target=$target api=$api ndk=$(basename "$ndk")"
+log "RUSTFLAGS=$RUSTFLAGS"
 cargo build --release --target "$target" $features $packages
 
 artifact="target/${target}/release/libfreecad_android.so"

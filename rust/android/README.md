@@ -11,7 +11,7 @@
 | wgpu cross-compile for Android | **works** | `cargo check --target aarch64-linux-android -p freecad-render` |
 | APK assembly (no Gradle) | **works** | `build_apk.sh` → `app/build/freecad-viewer-debug.apk` (26 MB, signed) |
 | APK contents | **verified** | `classes.dex`, `assets/demo_part.step`, `lib/arm64-v8a/*.so`, launchable `com.freecad.viewer.MainActivity` |
-| **Runtime on device/emulator** | **BLOCKED here** | `adb devices` → none; no emulator/system-images in this SDK. Install command ready (below) |
+| **Runtime proof (M2.1)** | **PASSED on emulator** | headless `sdk_gphone64_arm64`, Android 14, arm64-v8a: install ok, launch ok, `nativeInit` 101–168 ms (OCCT+mesh+wgpu), model pixels fill the viewport center row, live orbit changes the frame; screenshot committed |
 
 ## Reproduce
 

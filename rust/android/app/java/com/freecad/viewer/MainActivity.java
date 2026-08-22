@@ -80,11 +80,16 @@ public class MainActivity extends Activity
         long started = android.os.SystemClock.uptimeMillis();
         handle = nativeInit(surface, loadModel());
         long elapsed = android.os.SystemClock.uptimeMillis() - started;
-        android.util.Log.i("FreeCAD", "nativeInit(OCCT+mesh+wgpu init) took " + elapsed + " ms, handle=" + handle);
-        if (handle > 0) {
+        // Success is any non-zero handle: on arm64, heap pointers carry a
+        // top-byte tag and legitimately look negative when cast to jlong.
+        if (handle != 0) {
+            android.util.Log.i("FreeCAD",
+                "nativeInit(OCCT+mesh+wgpu init) took " + elapsed + " ms, handle=0x"
+                + Long.toHexString(handle));
             startLoop();
         } else {
-            android.util.Log.e("FreeCAD", "nativeInit failed with code " + handle);
+            android.util.Log.e("FreeCAD",
+                "nativeInit failed after " + elapsed + " ms (see prior logs)");
         }
     }
 
