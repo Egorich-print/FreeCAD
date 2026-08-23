@@ -25,6 +25,8 @@ cxx-build = "1"
 pollster = "0.4"
 glam = "0.29"
 wgpu = "25"
+quick-xml = "0.36"
+zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [profile.release]
 lto = "thin"
