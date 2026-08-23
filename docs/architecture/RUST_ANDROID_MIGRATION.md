@@ -250,3 +250,28 @@ to the first physical-device run.
 
 Next: M3 — minimal interaction + picking (face-ranges already flow
 end-to-end for this purpose).
+
+
+---
+
+## 12. M3 outcome — interaction + picking (2026-08)
+
+Full interactive loop on Android: `tap -> ray -> face id -> highlight`.
+
+| Item | Status |
+|---|---|
+| `Picker` (CPU Moeller-Trumbore) | deterministic, backend-independent; same PickHit contract a GPU id-buffer would fulfil |
+| Tap on visible face / miss / orbit-safety | verified on emulator via `input tap` + logcat (`face N` / `-1`) |
+| Highlight overlay | extract_face -> dedicated depth-biased pipeline |
+| Adjacent-faces fixture | two coplanar quads, distinct ranges — left/right identified separately |
+| Camera math | delegated to glam (perspective_rh 0..1 depth for wgpu); unit-anchored |
+
+Engineering notes from this milestone:
+1. Hand-rolled perspective composed in the wrong order (V*P instead of P*V)
+   produced off-frustum geometry that still "rendered something" — caught by
+   strict pixel assertions, fixed by delegating to glam.
+2. R32Uint color attachments do not rasterise reliably under Metal+wgpu25
+   offscreen targets here; the GPU id-buffer path is kept behind the scenes and
+   the CPU ray cast ships as the working mechanism (identical contract).
+3. sRGB render targets gamma-encode written values — pixel assertions must
+   compare against sRGB-encoded expectations.
