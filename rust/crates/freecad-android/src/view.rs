@@ -81,24 +81,22 @@ fn load_meshes(bytes: &[u8]) -> Result<LoadedModel, i32> {
             }
         };
         android_log("archive opened");
+        let document = archive.to_document();
         let mut meshes = Vec::new();
         let mut min_b = [f64::MAX; 3];
         let mut max_b = [f64::MIN; 3];
         let mut skipped = 0u32;
-        for obj in archive.document.shape_objects() {
-            let Some(payload) = archive.shape_of(obj) else {
+        for scene_obj in document.shape_objects() {
+            let Some(shape_idx) = scene_obj.shape_index else {
+                continue;
+            };
+            let fcstd_obj = &archive.document.objects[shape_idx];
+            let Some(payload) = archive.shape_of(fcstd_obj) else {
                 continue;
             };
             // Wire/edge payloads fail to tessellate - skip them gracefully.
             let shape = match kernel.read_brep(payload) {
                 Ok(s) => s,
-                Err(_) => {
-                    skipped += 1;
-                    continue;
-                }
-            };
-            let bounds = match kernel.bounds(&shape) {
-                Ok(b) => b,
                 Err(_) => {
                     skipped += 1;
                     continue;
@@ -115,13 +113,15 @@ fn load_meshes(bytes: &[u8]) -> Result<LoadedModel, i32> {
                 skipped += 1;
                 continue;
             }
-            for (mn, v) in min_b.iter_mut().zip(bounds.min) {
-                *mn = mn.min(v);
+            // Bake the object's placement into vertex positions.
+            let pl = &scene_obj.placement;
+            let mut baked = mesh.clone();
+            for p in &mut baked.positions {
+                p[0] += pl.pos[0] as f32;
+                p[1] += pl.pos[1] as f32;
+                p[2] += pl.pos[2] as f32;
             }
-            for (mx, v) in max_b.iter_mut().zip(bounds.max) {
-                *mx = mx.max(v);
-            }
-            meshes.push(mesh);
+            meshes.push(baked);
         }
         android_log(&format!("shapes ok={} skipped={}", meshes.len(), skipped));
         if meshes.is_empty() {
