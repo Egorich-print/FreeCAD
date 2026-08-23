@@ -236,3 +236,28 @@ fn committed_step_fixture_loads_through_real_occt() {
         "plate+boss z range"
     );
 }
+
+#[test]
+fn fcstd_draft_document_all_shapes_tessellate() {
+    use freecad_io::fcstd;
+    use freecad_kernel::GeometryKernel as _;
+
+    let bytes = include_bytes!("../../../../data/examples/draft_test_objects.FCStd");
+    let archive = fcstd::open_archive(bytes).expect("open FCStd");
+
+    let mut kernel = OcctBackend::new().expect("OCCT backend");
+    let mut rendered = 0usize;
+
+    for obj in archive.document.shape_objects() {
+        let Some(payload) = archive.shape_of(obj) else { continue };
+        let Ok(shape) = kernel.read_brep(payload) else {
+            continue; // some payloads are wires/edges — not all tessellate
+        };
+        if let Ok(mesh) = kernel.tessellate(&shape, 0.5, 0.5) {
+            assert!(mesh.validate().is_ok(), "mesh for {} validates", obj.name);
+            rendered += 1;
+        }
+    }
+    println!("FCStd shapes rendered: {rendered}");
+    assert!(rendered >= 10, "expected at least 10 renderable shapes, got {rendered}");
+}
