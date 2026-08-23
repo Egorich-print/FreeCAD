@@ -275,3 +275,38 @@ Engineering notes from this milestone:
    the CPU ray cast ships as the working mechanism (identical contract).
 3. sRGB render targets gamma-encode written values — pixel assertions must
    compare against sRGB-encoded expectations.
+
+
+---
+
+## 13. M3 outcome — interaction + picking (2026-08)
+
+Interactive loop on Android: `tap → ray → face id → highlight overlay`.
+
+| Item | Status |
+|---|---|
+| Tap on visible face | ✅ verified on emulator (`input tap` → logcat `face N`) |
+| Deterministic hit | ✅ CPU Moeller-Trumbore ray cast, exact per-face resolution |
+| Triangle ID recovered | ✅ local index within the mesh returned in PickHit |
+| Face-range resolved | ✅ face ranges flow end-to-end from OCCT tessellation |
+| Highlight overlay | ✅ extract_face → dedicated depth-biased pipeline |
+| Miss returns no-hit | ✅ tap on background → -1 (verified) |
+| Orbit does not break pick | ✅ pick uses current camera state each time |
+| No OCCT types cross renderer | ✅ PickHit is kernel-agnostic by construction |
+| Android + desktop tests | ✅ 28 tests green; adjacent-faces fixture distinguishes left/right quads |
+
+Key engineering findings:
+1. **Hand-rolled perspective composed V*P instead of P*V** — produced
+   off-frustum geometry that still "rendered something", masked by a weak
+   >10% lit-pixel assertion. Fixed by delegating to glam and adding strict
+   near/far plane anchors to the unit test.
+2. **R32Uint attachments do not rasterise reliably under Metal+wgpu25**
+   offscreen targets — mini-repro with R32Uint works standalone but the same
+   pipeline inside the Picker silently produces no fragments. Root cause not
+   fully isolated; CPU picking ships as the working mechanism with identical
+   contract. GPU id-buffer code retained behind the scenes for future revisit.
+3. **sRGB render targets gamma-encode written values** — pixel assertions
+   must compare against sRGB-encoded expectations.
+4. **Metal flat interpolation takes the FIRST vertex** of a triangle as the
+   provoking vertex (not the last like Vulkan) — relevant when triangle
+   corners carry distinct flat attributes.
