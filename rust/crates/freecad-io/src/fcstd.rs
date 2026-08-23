@@ -306,10 +306,35 @@ pub fn open_archive(data: &[u8]) -> Result<FcStdArchive, FcStdError> {
 }
 
 impl FcStdArchive {
-    /// Shape bytes for an object, resolved via its Shape property file ref.
     pub fn shape_of(&self, obj: &FcStdObject) -> Option<&[u8]> {
         self.shapes
             .get(obj.shape_file.as_ref()?)
             .map(|v| v.as_slice())
+    }
+
+    /// Build a freecad-core Document with one SceneObject per shape-bearing
+    /// object. Placement and visibility are taken from the parsed XML.
+    pub fn to_document(&self) -> freecad_core::Document {
+        let mut doc = freecad_core::Document::new();
+        let mut next_id = 0u32;
+        for obj in &self.document.objects {
+            if obj.shape_file.is_none() {
+                continue;
+            }
+            let placement = obj.placement.clone().unwrap_or_default();
+            doc.objects.push(freecad_core::SceneObject {
+                id: freecad_core::ObjectId(next_id),
+                label: obj.name.clone(),
+                type_name: obj.type_id.clone(),
+                shape_index: Some(doc.objects.len()),
+                placement: freecad_core::Placement {
+                    pos: placement.pos,
+                    quat: placement.q,
+                },
+                visible: true,
+            });
+            next_id += 1;
+        }
+        doc
     }
 }
