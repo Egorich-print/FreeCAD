@@ -6,18 +6,16 @@
 
 use std::ptr::NonNull;
 
+use freecad_core::mesh::MeshBuffer;
 use freecad_io::{Format, load_bytes};
 use freecad_kernel::GeometryKernel;
 use freecad_kernel_occt::OcctBackend;
-use freecad_render::pick::PickInput;
-use freecad_render::{
-    GpuMesh, OrbitCamera, Picker, RenderItem, Renderer, TargetSize, clear_color_texture,
-    create_depth_view,
-};
+use freecad_render::pick::{PickInput, Picker};
+use freecad_render::{GpuMesh, OrbitCamera, RenderItem, Renderer, TargetSize, create_depth_view};
 
 use jni::JNIEnv;
 use jni::objects::{JByteArray, JClass, JObject};
-use jni::sys::{jbyteArray, jint, jlong};
+use jni::sys::{jbyteArray, jfloat, jint, jlong};
 use raw_window_handle::{
     AndroidDisplayHandle, AndroidNdkWindowHandle, RawDisplayHandle, RawWindowHandle,
 };
@@ -30,7 +28,6 @@ const ERR_MESH_EMPTY: i32 = -2;
 const ERR_WINDOW: i32 = -3;
 const ERR_SURFACE_CREATE: i32 = -4;
 const ERR_ADAPTER: i32 = -5;
-const ERR_DEVICE: i32 = -6;
 const ERR_MESH_UPLOAD: i32 = -7;
 // nativeRender failure codes.
 const RENDER_NO_SURFACE: i32 = -31;
@@ -50,11 +47,8 @@ unsafe extern "C" {
 struct Viewer {
     device: wgpu::Device,
     queue: wgpu::Queue,
-    instance: wgpu::Instance,
-    adapter: wgpu::Adapter,
     surface: Option<wgpu::Surface<'static>>,
     config: wgpu::SurfaceConfiguration,
-    depth_size: TargetSize,
     depth: wgpu::TextureView,
     renderer: Renderer,
     picker: Picker,
@@ -71,9 +65,9 @@ struct Viewer {
 // aliasing of the Viewer or the window pointer occurs.
 unsafe impl Send for Viewer {}
 
-fn load_meshes(
-    step_bytes: &[u8],
-) -> Result<(Vec<freecad_core::mesh::MeshBuffer>, [f64; 3], [f64; 3]), i32> {
+type LoadedModel = (Vec<freecad_core::mesh::MeshBuffer>, [f64; 3], [f64; 3]);
+
+fn load_meshes(step_bytes: &[u8]) -> Result<LoadedModel, i32> {
     let mut kernel = OcctBackend::new().map_err(|_| ERR_KERNEL)?;
     let shape = load_bytes(&mut kernel, step_bytes, Format::Step).map_err(|_| ERR_KERNEL)?;
     let bounds = kernel.bounds(&shape).map_err(|_| ERR_KERNEL)?;
@@ -88,7 +82,7 @@ fn load_meshes(
 
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
-    mut env: JNIEnv,
+    env: JNIEnv,
     _class: JClass,
     surface: JObject,
     step_bytes: jbyteArray,
@@ -109,7 +103,7 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
     let release_window = || unsafe { ANativeWindow_release(window) };
 
     let (mesh_buffers, bounds_min, bounds_max) = match load_meshes(&bytes) {
-        Ok(ok) => ok,
+        Ok((m, mn, mx)) => (m, mn, mx),
         Err(_) => {
             release_window();
             return 0;
@@ -179,6 +173,7 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
     surface.configure(&device, &config);
 
     let renderer = Renderer::new(&device, format);
+    let picker = Picker::new(&device);
     let depth = create_depth_view(&device, size);
 
     let mut meshes = Vec::new();
@@ -198,14 +193,11 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
     let viewer = Box::new(Viewer {
         device,
         queue,
-        instance,
-        adapter,
         surface: Some(surface),
         config,
-        depth_size: size,
         depth,
         renderer,
-        picker: Picker::new(&device),
+        picker,
         meshes,
         mesh_buffers,
         selected: None,
@@ -280,7 +272,16 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeTap(
                 mesh: m,
             })
             .collect();
-        match v.picker.pick(&v.camera, size_of(v), &inputs, x, y) {
+        match v.picker.pick(
+            &v.camera,
+            TargetSize {
+                width: v.config.width,
+                height: v.config.height,
+            },
+            &inputs,
+            x as u32,
+            y as u32,
+        ) {
             Some(hit) => {
                 v.selected = Some((hit.mesh_index, hit.face_id));
                 hit.face_id as jint
@@ -340,17 +341,26 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(
             &viewer.camera,
             width as f32 / height.max(1) as f32,
         );
+        let highlight = match viewer.selected {
+            Some((mi, face)) => {
+                freecad_core::selection::extract_face(&viewer.mesh_buffers[mi], face)
+                    .and_then(|fm| GpuMesh::from_mesh_buffer(&viewer.device, &fm).ok())
+            }
+            None => None,
+        };
+        let selected_mesh = viewer.selected.map(|s| s.0);
+        let highlight_gpu = highlight.as_ref();
         let items: Vec<RenderItem<'_>> = viewer
             .meshes
             .iter()
             .enumerate()
             .map(|(i, m)| RenderItem {
                 mesh: m,
-                highlight: viewer.selected.filter(|s| s.0 == i).and_then(|(_, face)| {
-                    let face_mesh =
-                        freecad_core::selection::extract_face(&viewer.mesh_buffers[i], face)?;
-                    GpuMesh::from_mesh_buffer(&viewer.device, &face_mesh).ok()
-                }),
+                highlight: if selected_mesh == Some(i) {
+                    highlight_gpu
+                } else {
+                    None
+                },
             })
             .collect();
         let mut encoder = viewer.device.create_command_encoder(&Default::default());
@@ -358,9 +368,27 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(
             .renderer
             .render(&mut encoder, &view, &viewer.depth, size, &items);
         viewer.queue.submit(Some(encoder.finish()));
-        let _ = frame.present();
+        frame.present();
 
         result = STATUS_OK;
     });
     result
+}
+
+/// Minimal wrapper over liblog so tap diagnostics reach logcat.
+#[allow(dead_code)] // retained for on-device tap/init diagnostics
+fn android_log(msg: &str) {
+    unsafe extern "C" {
+        fn __android_log_print(
+            prio: i32,
+            tag: *const core::ffi::c_char,
+            fmt: *const core::ffi::c_char,
+            ...
+        ) -> i32;
+    }
+    let tag = c"FreeCAD";
+    let cmsg = std::ffi::CString::new(msg).unwrap_or_default();
+
+    // 3 = ANDROID_LOG_INFO
+    unsafe { __android_log_print(3, tag.as_ptr(), c"%s".as_ptr(), cmsg.as_ptr()) };
 }
