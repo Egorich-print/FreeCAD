@@ -67,9 +67,70 @@ unsafe impl Send for Viewer {}
 
 type LoadedModel = (Vec<freecad_core::mesh::MeshBuffer>, [f64; 3], [f64; 3]);
 
-fn load_meshes(step_bytes: &[u8]) -> Result<LoadedModel, i32> {
+fn load_meshes(bytes: &[u8]) -> Result<LoadedModel, i32> {
     let mut kernel = OcctBackend::new().map_err(|_| ERR_KERNEL)?;
-    let shape = load_bytes(&mut kernel, step_bytes, Format::Step).map_err(|_| ERR_KERNEL)?;
+
+    // FCStd: parse archive and load every shape-bearing object through OCCT.
+    if bytes.starts_with(b"PK") {
+        crate::view::android_log("FCSTD branch entered");
+        let archive = match freecad_io::fcstd::open_archive(bytes) {
+            Ok(a) => a,
+            Err(e) => {
+                android_log(&format!("open_archive err={e:?}"));
+                return Err(ERR_KERNEL);
+            }
+        };
+        android_log("archive opened");
+        let mut meshes = Vec::new();
+        let mut min_b = [f64::MAX; 3];
+        let mut max_b = [f64::MIN; 3];
+        let mut skipped = 0u32;
+        for obj in archive.document.shape_objects() {
+            let Some(payload) = archive.shape_of(obj) else {
+                continue;
+            };
+            // Wire/edge payloads fail to tessellate - skip them gracefully.
+            let shape = match kernel.read_brep(payload) {
+                Ok(s) => s,
+                Err(_) => {
+                    skipped += 1;
+                    continue;
+                }
+            };
+            let bounds = match kernel.bounds(&shape) {
+                Ok(b) => b,
+                Err(_) => {
+                    skipped += 1;
+                    continue;
+                }
+            };
+            let mesh = match kernel.tessellate(&shape, 0.5, 0.5) {
+                Ok(m) => m,
+                Err(_) => {
+                    skipped += 1;
+                    continue;
+                }
+            };
+            if mesh.is_empty() {
+                skipped += 1;
+                continue;
+            }
+            for (mn, v) in min_b.iter_mut().zip(bounds.min) {
+                *mn = mn.min(v);
+            }
+            for (mx, v) in max_b.iter_mut().zip(bounds.max) {
+                *mx = mx.max(v);
+            }
+            meshes.push(mesh);
+        }
+        android_log(&format!("shapes ok={} skipped={}", meshes.len(), skipped));
+        if meshes.is_empty() {
+            return Err(ERR_MESH_EMPTY);
+        }
+        return Ok((meshes, min_b, max_b));
+    }
+
+    let shape = load_bytes(&mut kernel, bytes, Format::Step).map_err(|_| ERR_KERNEL)?;
     let bounds = kernel.bounds(&shape).map_err(|_| ERR_KERNEL)?;
     let mesh = kernel
         .tessellate(&shape, 0.5, 0.35)
@@ -77,7 +138,11 @@ fn load_meshes(step_bytes: &[u8]) -> Result<LoadedModel, i32> {
     if mesh.is_empty() {
         return Err(ERR_MESH_EMPTY);
     }
-    Ok((vec![mesh], bounds.min, bounds.max))
+    Ok((
+        vec![mesh],
+        [bounds.min[0], bounds.min[1], bounds.min[2]],
+        [bounds.max[0], bounds.max[1], bounds.max[2]],
+    ))
 }
 
 #[unsafe(no_mangle)]
@@ -103,10 +168,11 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
     let release_window = || unsafe { ANativeWindow_release(window) };
 
     let (mesh_buffers, bounds_min, bounds_max) = match load_meshes(&bytes) {
-        Ok((m, mn, mx)) => (m, mn, mx),
-        Err(_) => {
+        Ok(ok) => ok,
+        Err(code) => {
+            crate::view::android_log(&format!("load_meshes failed with code {code}"));
             release_window();
-            return 0;
+            return code as jlong;
         }
     };
 
@@ -211,8 +277,15 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeInit(
 /// access is exclusive (single UI thread) and destruction happens exactly once
 /// in nativeDestroy.
 fn with_viewer<R>(handle: jlong, f: impl FnOnce(&mut Viewer) -> R) -> Option<R> {
-    if handle == 0 {
-        return None;
+    // Valid handles are tagged heap pointers whose jlong image is negative on
+    // arm64 (top-byte tagging). nativeInit returns small negative error codes
+    // on failure, so anything below -1000 is a live pointer.
+    if handle < -1_000_000 {
+        // pointer-like: fall through
+    } else if handle != 0 {
+        return None; // small negative = error code from nativeInit
+    } else {
+        return None; // zero = not initialised
     }
     // SAFETY: see above.
     Some(f(unsafe { &mut *(handle as *mut Viewer) }))
@@ -301,8 +374,13 @@ pub extern "system" fn Java_com_freecad_viewer_MainActivity_nativeRender(
     _class: JClass,
     handle: jlong,
 ) -> jint {
+    android_log(&format!("render called handle={handle}"));
     let mut result = RENDER_NO_SURFACE;
     with_viewer(handle, |viewer| {
+        android_log(&format!(
+            "render in-viewer surface_some={}",
+            viewer.surface.is_some()
+        ));
         let Some(surface) = viewer.surface.as_ref() else {
             return;
         };

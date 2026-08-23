@@ -249,7 +249,9 @@ fn fcstd_draft_document_all_shapes_tessellate() {
     let mut rendered = 0usize;
 
     for obj in archive.document.shape_objects() {
-        let Some(payload) = archive.shape_of(obj) else { continue };
+        let Some(payload) = archive.shape_of(obj) else {
+            continue;
+        };
         let Ok(shape) = kernel.read_brep(payload) else {
             continue; // some payloads are wires/edges — not all tessellate
         };
@@ -259,5 +261,8 @@ fn fcstd_draft_document_all_shapes_tessellate() {
         }
     }
     println!("FCStd shapes rendered: {rendered}");
-    assert!(rendered >= 10, "expected at least 10 renderable shapes, got {rendered}");
+    assert!(
+        rendered >= 10,
+        "expected at least 10 renderable shapes, got {rendered}"
+    );
 }

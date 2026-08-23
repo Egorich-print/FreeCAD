@@ -43,7 +43,7 @@ public class MainActivity extends Activity
     }
 
     private byte[] loadModel() {
-        try (java.io.InputStream in = getAssets().open("demo_part.step")) {
+        try (java.io.InputStream in = getAssets().open("demo.FCStd")) {
             java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
             byte[] buffer = new byte[16384];
             int read;
@@ -79,7 +79,12 @@ public class MainActivity extends Activity
             return;
         }
         long started = android.os.SystemClock.uptimeMillis();
-        handle = nativeInit(surface, loadModel());
+        byte[] model = loadModel();
+        if (model.length == 0) {
+            android.util.Log.e("FreeCAD", "loadModel returned empty payload");
+            return;
+        }
+        handle = nativeInit(surface, model);
         long elapsed = android.os.SystemClock.uptimeMillis() - started;
         // Success is any non-zero handle: on arm64, heap pointers carry a
         // top-byte tag and legitimately look negative when cast to jlong.

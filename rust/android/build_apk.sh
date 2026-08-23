@@ -49,6 +49,7 @@ log "2/6 dex"
 log "3/6 stage payload"
 cp "$build/dex/classes.dex" "$build/stage/"
 cp "$app_dir/assets/demo_part.step" "$build/stage/assets/"
+cp "$app_dir/assets/demo.FCStd" "$build/stage/assets/" 2>/dev/null || true
 cp "$so_src" "$build/stage/lib/$abi/"
 
 readelf="$ndk/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf"
