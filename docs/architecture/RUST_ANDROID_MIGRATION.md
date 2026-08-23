@@ -310,3 +310,24 @@ Key engineering findings:
 4. **Metal flat interpolation takes the FIRST vertex** of a triangle as the
    provoking vertex (not the last like Vulkan) — relevant when triangle
    corners carry distinct flat attributes.
+
+
+---
+
+## 14. M4 proposal — Document model + FCStd S0 integration
+
+The natural continuation after M3:
+
+1. **Document model v0** in freecad-core: objects (name, type, placement),
+   link graph, display state. Sized to viewer needs — no Property zoo.
+2. **FCStd S0 integration**: `freecad-io::fcstd::open_archive` already parses
+   real documents (verified on draft_test_objects.FCStd: 113 objects, 69
+   placements, 62 shape payloads). Wire into the Android/desktop viewer so
+   bundled `.FCStd` opens through the full pipeline.
+3. **Multi-object scene**: render all shape-bearing objects with per-object
+   transforms from parsed placements.
+4. **Selection → feature mapping**: picked face already identifies
+   `(mesh_index, face_id)`; map back to the originating FCStd object name.
+5. **Desktop viewer parity**: click-to-pick in the winit example.
+
+Non-goals: expressions, recompute, Sketcher, writing .FCStd.
