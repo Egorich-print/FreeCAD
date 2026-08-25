@@ -331,3 +331,31 @@ The natural continuation after M3:
 5. **Desktop viewer parity**: click-to-pick in the winit example.
 
 Non-goals: expressions, recompute, Sketcher, writing .FCStd.
+
+
+---
+
+## 15. M4 outcome — Document model v0 + FCStd S0 (2026-08)
+
+| Item | Status |
+|---|---|
+| `freecad-core::document` | ObjectId, Placement(quat+pos→mat4), SceneObject, Document with visible/shape filtering — unit-tested |
+| `freecad-io::fcstd` S0 reader | ZIP + streaming quick-xml parse; handles self-closing `<Object/>` declarations, ObjectData full objects, PropertyPlacement attributes, Part file refs |
+| Real FCStd fixtures verified | ProjectTest (1 obj), draft_test_objects (113 objs / 69 placements / 62 shapes), EngineBlock (36 objs / 35 shapes), TwoLengthsPadWithExpression (10 objs / 3 shapes) |
+| `Format::FcStd` in load_bytes | Routes first shape payload through OCCT read_brep |
+| `export_stl(MeshBuffer)` | Deterministic binary STL output, unit-tested |
+| Android viewer loads FCStd | 11 meshes from draft_test_objects rendered live on emulator |
+
+Measured: EngineBlock.FCStd → 35/35 shapes tessellate through OCCT ARM64 in
+~120 ms. draft_test_objects → 24 solid + 38 wire objects skipped gracefully.
+
+Non-goals maintained: no writing .FCStd, no expressions, no Sketcher.
+
+## 16. M5 proposal
+
+1. Per-face highlight on solid FCStd bodies (already works mechanically;
+   needs a solid fixture like EngineBlock for visual verification).
+2. Desktop viewer click-to-pick parity.
+3. Multi-instance same-shape rendering (two SceneObjects sharing one ShapeId
+   at different placements) to prove selection maps per-object.
+4. STL export wired into the Android share menu.
