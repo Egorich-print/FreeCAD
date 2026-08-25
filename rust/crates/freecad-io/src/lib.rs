@@ -90,3 +90,59 @@ impl From<crate::fcstd::FcStdError> for KernelError {
         Self::new(KernelErrorKind::Parse, e.to_string())
     }
 }
+
+/// Binary STL export from a tessellated mesh buffer.
+pub fn export_stl(mesh: &freecad_core::MeshBuffer) -> Vec<u8> {
+    let tris = mesh.triangle_count() as u32;
+    let mut out = Vec::with_capacity(84 + tris as usize * 50);
+    out.extend_from_slice(b"FreeCAD Rust STL export"); // 80-byte header (padded)
+    out.resize(80, b' ');
+    out.extend_from_slice(&tris.to_ne_bytes());
+    for t in 0..mesh.triangle_count() {
+        if let Some([a, b, c]) = mesh.triangle_at(t) {
+            // normal = cross(b-a, c-a) normalized
+            let ux = b[0] - a[0];
+            let uy = b[1] - a[1];
+            let uz = b[2] - a[2];
+            let vx = c[0] - a[0];
+            let vy = c[1] - a[1];
+            let vz = c[2] - a[2];
+            let nx = uy * vz - uz * vy;
+            let ny = uz * vx - ux * vz;
+            let nz = ux * vy - uy * vx;
+            let len = (nx * nx + ny * ny + nz * nz).sqrt();
+            let (nx, ny, nz) = if len > 1e-12 {
+                (nx / len, ny / len, nz / len)
+            } else {
+                (0.0, 0.0, 1.0)
+            };
+            for f in [nx, ny, nz] {
+                out.extend_from_slice(&f.to_le_bytes());
+            }
+            for p in [a, b, c] {
+                for v in p {
+                    out.extend_from_slice(&v.to_le_bytes());
+                }
+            }
+            out.extend_from_slice(&0u16.to_le_bytes());
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod stl_tests {
+    use super::*;
+
+    #[test]
+    fn stl_export_produces_valid_binary() {
+        let cube = freecad_core::prim::cube(2.0);
+        let stl = export_stl(&cube);
+        assert_eq!(stl.len(), 84 + 50 * 12);
+        let tri_count = u32::from_le_bytes(stl[80..84].try_into().unwrap());
+        assert_eq!(tri_count, 12);
+        // first triangle: normal should be unit-ish
+        let nx = f32::from_le_bytes(stl[84..88].try_into().unwrap());
+        assert!(nx.abs() <= 1.01);
+    }
+}
