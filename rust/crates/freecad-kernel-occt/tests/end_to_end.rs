@@ -266,3 +266,35 @@ fn fcstd_draft_document_all_shapes_tessellate() {
         "expected at least 10 renderable shapes, got {rendered}"
     );
 }
+
+#[test]
+fn fcstd_engine_block_loads_and_tessellates() {
+    use freecad_io::fcstd::open_archive;
+    use freecad_kernel::GeometryKernel as _;
+
+    let bytes = include_bytes!("../../../../data/examples/EngineBlock.FCStd");
+    let archive = open_archive(bytes).expect("EngineBlock opens");
+    assert!(archive.document.shape_objects().count() >= 20);
+
+    let mut kernel = crate::OcctBackend::new().unwrap();
+    let mut ok = 0usize;
+    for obj in archive.document.shape_objects() {
+        let Some(payload) = archive.shape_of(obj) else {
+            continue;
+        };
+        let Ok(shape) = kernel.read_brep(payload) else {
+            continue;
+        };
+        let Ok(_bounds) = kernel.bounds(&shape) else {
+            continue;
+        };
+        let Ok(mesh) = kernel.tessellate(&shape, 0.5, 0.5) else {
+            continue;
+        };
+        if !mesh.is_empty() {
+            ok += 1;
+        }
+    }
+    println!("EngineBlock: {ok} meshes");
+    assert!(ok >= 15);
+}
