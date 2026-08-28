@@ -24,6 +24,8 @@
 
 #include <TopoDS.hxx>
 #include <TopoDS_Face.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopAbs_ShapeEnum.hxx>
 #include <boost/signals2.hpp>
 #include <map>
 #include <string>
@@ -82,6 +84,28 @@ inline void tryAutoImportFaceEdges(
 {
     if (!isSmartExternalEnabled() || !sketchFeat || !supportObj || subName.rfind("Face", 0) != 0) {
         return;
+    }
+    // Guard: large STEP faces with >100 edges would create heavy ExternalGeo; cap
+    try {
+        if (auto* partFeat = dynamic_cast<Part::Feature*>(supportObj)) {
+            const Part::TopoShape shape = partFeat->Shape.getValue();
+            Part::TopoShape face = shape.getSubShape(subName.c_str());
+            if (!face.isNull()) {
+                // count edges via TopExp
+                int edgeCount = 0;
+                for (TopExp_Explorer exp(face.getShape(), TopAbs_EDGE); exp.More(); exp.Next()) {
+                    if (++edgeCount > 80) {
+                        Base::Console().log(
+                            "SmartExternal: face %s has >80 edges, skipping auto-import\n",
+                            subName.c_str()
+                        );
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    catch (...) {
     }
     // addExternal with Face auto-expands to all edges (SketchObjectExternal.cpp:781)
     // Use python command so it is undoable and triggers rebuildExternalGeometry

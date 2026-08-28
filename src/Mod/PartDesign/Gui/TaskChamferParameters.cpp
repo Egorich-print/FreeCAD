@@ -151,8 +151,11 @@ void TaskChamferParameters::setUpUI(PartDesign::Chamfer* pcChamfer)
     ui->chamferAngle->setUnit(Base::Unit::Angle);
     ui->chamferAngle->setMinimum(pcChamfer->Angle.getMinimum());
     ui->chamferAngle->setMaximum(pcChamfer->Angle.getMaximum());
+    ui->chamferAngle->setSingleStep(1.0);
     ui->chamferAngle->setValue(pcChamfer->Angle.getValue());
+    ui->chamferAngle->setToolTip(QT_TR_NOOP("Chamfer angle (0-90° typical)"));
     ui->chamferAngle->bind(pcChamfer->Angle);
+    ui->flipDirection->setToolTip(QT_TR_NOOP("Swap two distances / flip chamfer side"));
 
     ui->stackedWidget->setFixedHeight(ui->chamferSize2->sizeHint().height());
 

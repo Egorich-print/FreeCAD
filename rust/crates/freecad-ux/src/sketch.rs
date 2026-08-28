@@ -95,6 +95,27 @@ pub fn face_edges_to_external(face: &FaceProj, max_edges: usize) -> Vec<String> 
         .collect()
 }
 
+/// Smart external policy — mirrors C++ tryAutoImportFaceEdges cap (80 edges)
+pub fn should_auto_import(face: &FaceProj) -> bool {
+    face.edges.len() <= 80
+}
+
+/// Nearest snap candidate for a cursor pos (Fusion-style magnetic)
+pub fn nearest_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<SnapCandidate> {
+    let mut best: Option<(f64, SnapCandidate)> = None;
+    for c in face.snap_candidates() {
+        let d = ((c.pos[0] - cursor[0]).powi(2) + (c.pos[1] - cursor[1]).powi(2)).sqrt();
+        if d <= max_dist {
+            match best {
+                None => best = Some((d, c)),
+                Some((bd, _)) if d < bd => best = Some((d, c)),
+                _ => {}
+            }
+        }
+    }
+    best.map(|(_, c)| c)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -179,5 +200,23 @@ mod tests {
         // 2 endpoints + mid + center =4
         assert_eq!(c.len(), 4);
         assert!(c.iter().any(|sc| sc.kind == SnapKind::Center));
+    }
+
+    #[test]
+    fn should_auto_import_cap() {
+        let mut face = rect_face();
+        assert!(should_auto_import(&face));
+        face.edges.resize(81, face.edges[0].clone());
+        assert!(!should_auto_import(&face));
+    }
+
+    #[test]
+    fn nearest_snap_picks_mid() {
+        let face = rect_face();
+        // cursor near (5,0) midpoint
+        let n = nearest_snap(&face, [5.1, 0.1], 1.0).unwrap();
+        assert_eq!(n.kind, SnapKind::Midpoint);
+        assert_eq!(n.pos, [5.0, 0.0]);
+        assert!(nearest_snap(&face, [50.0, 50.0], 1.0).is_none());
     }
 }
