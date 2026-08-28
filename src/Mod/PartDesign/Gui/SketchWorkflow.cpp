@@ -26,6 +26,9 @@
 #include <TopoDS_Face.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopAbs_ShapeEnum.hxx>
+#include <BRepGProp.hxx>
+#include <GProp_GProps.hxx>
+#include <gp_Pnt.hxx>
 #include <boost/signals2.hpp>
 #include <map>
 #include <string>
@@ -75,6 +78,15 @@ inline bool isSmartExternalEnabled()
     return App::GetApplication()
         .GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher/General")
         ->GetBool("SmartExternalEdges", true);
+}
+
+// M15: Compute face centroid for sketch centering
+inline Base::Vector3d getFaceCentroid(const TopoDS_Face& face)
+{
+    GProp_GProps gprops;
+    BRepGProp::SurfaceProperties(face, gprops);
+    gp_Pnt cog = gprops.CentreOfMass();
+    return Base::Vector3d(cog.X(), cog.Y(), cog.Z());
 }
 
 inline void tryAutoImportFaceEdges(
@@ -342,8 +354,30 @@ public:
                 App::DocumentObject* supObj = so.getObject();
                 auto subs = so.getSubNames();
                 if (!subs.empty()) {
-                    // queue addExternal via python (undoable); Attacher already set above
+                    // queue addExternal via python; Attacher already set above
                     tryAutoImportFaceEdges(Feat, supObj, subs[0]);
+                }
+                // M15: Auto-center sketch origin on face's geometric centroid
+                try {
+                    Part::TopoShape faceShape = supObj->getSubShape(subs[0].c_str());
+                    if (!faceShape.isNull()) {
+                        TopoDS_Face face = TopoDS::Face(faceShape.getShape());
+                        Base::Vector3d centroid = getFaceCentroid(face);
+                        FCMD_OBJ_CMD(
+                            Feat,
+                            "AttachmentOffset.Base.x = " << centroid.x
+                        );
+                        FCMD_OBJ_CMD(
+                            Feat,
+                            "AttachmentOffset.Base.y = " << centroid.y
+                        );
+                        FCMD_OBJ_CMD(
+                            Feat,
+                            "AttachmentOffset.Base.z = " << centroid.z
+                        );
+                    }
+                }
+                catch (...) {
                 }
             }
             catch (...) {
