@@ -104,6 +104,19 @@ View these pages for more information:
 The [FreeCAD forum](https://forum.freecad.org) is a great place
 to find help and solve specific problems when learning to use FreeCAD.
 
+Fusion 360 Parity (YOLO Mission)
+--------------------------------
+
+This fork is actively becoming a **real Fusion 360 alternative** — see [`MISSION.md`](MISSION.md).
+
+**Already done (2026-08-28, YOLO autonomous):**
+- **Chamfer radius picker** — draggable handles with distinct styles (Arrow vs Sphere), type-aware visibility, live preview (`src/Mod/PartDesign/Gui/TaskChamferParameters.cpp:354`)
+- **Smart sketch on face** — face contour auto-imports as external geometry, mid/endpoint snap works without the `External` button (`src/Mod/PartDesign/Gui/SketchWorkflow.cpp:70`)
+- **Rust UX core** — `rust/crates/freecad-ux` (Rust 2024, 1.98), 15 tests: chamfer drag math, snap thresholds, face projection
+- Toggle: `Preferences → Sketcher → General → SmartExternalEdges`
+
+**Roadmap M8-M10** in `MISSION.md` — auto-scaling gizmos, per-edge handles, Part WB parity, docs & screencasts. Tags: `yolo-mission-m7-*`, `yolo-mission-m9-*`.
+
 ---
 
 <p>This project receives generous infrastructure support from

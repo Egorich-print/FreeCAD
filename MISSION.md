@@ -186,3 +186,18 @@ rust/crates/freecad-ux/
 ---
 
 > *Дальше — код. YOLO.*
+
+---
+
+## 8. Прогресс YOLO-прогона (2026-08-28)
+
+| Коммит | Tag | Что |
+|--------|-----|-----|
+| `b4f5679` | `yolo-mission-start-20260828-b4f5679` | Audit snapshot |
+| `731952c` | `yolo-mission-m7-731952c` | **M5+M6+M7** — chamfer picker + smart sketch + freecad-ux (13 tests) |
+| `94a2f32` | `yolo-mission-m9-94a2f32` | **M8/M9 polish** — angle step, 80-edge cap, nearest_snap (15 tests) |
+
+Следующие шаги автономно (без ожидания пользователя):
+- **M8 done** — DlgFilletEdges уже имеет SingleStep 0.1; унификация via freecad-ux
+- **M9 done** — cap 80 + nearest_snap + gizmo visibility polish
+- **M10 next** — README Fusion-parity секция + скринкасты + релиз-тег `fusion-parity-m10`
