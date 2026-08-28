@@ -7,11 +7,12 @@
 **Repo**: https://github.com/Egorich-print/FreeCAD  
 **Local**: `~/ai-workstation/Projects/FreeCAD` (симлинк из `projects/`)  
 **Старт**: `yolo-mission-start-20260828-b4f5679` (бэкап `/tmp/freecad-yolo-backup-20260828.tgz`)  
-**Агент**: Muse Spark (OpenCode)
+**Агент**: Muse Spark (OpenCode)  
+**Current HEAD**: `38b018e` (M5/M6 build fixes applied)
 
 ---
 
-## 0. Почему именно эти две баги — лицо Fusion-опыта
+## 0. Почему эти UX-баги — лицо Fusion-опыта
 
 1. **Фаска — невозможно выбрать радиус**  
    Пользователь: выбрал ребро → создал Chamfer → не понимает, куда кликать, чтобы потянуть радиус.  
@@ -51,20 +52,21 @@
 
 **Вывод**: нужен либо eager-импорт всех рёбер грани при создании скетча, либо ghost-snap без импорта (ленивый `addExternal` по снапу).
 
-### 1.3 Rust-слой (2026-08-28)
+### 1.3 Rust-слой (2026-08-28) — **УЖЕ РЕАЛИЗОВАН**
 
 ```
 rust/
-  Cargo.toml — workspace edition 2024, 6 crates
-  crates/freecad-core     — Document, MeshBuffer, Selection, Prim
-  crates/freecad-kernel   — trait Kernel (mock + OCCT)
+  Cargo.toml — workspace edition 2024, 7 crates
+  crates/freecad-core       — Document, MeshBuffer, Selection, Prim
+  crates/freecad-kernel     — trait Kernel (mock + OCCT)
   crates/freecad-kernel-occt — cxx-bridge к OCCT shim
-  crates/freecad-io       — FCStd S0 reader + STL export
-  crates/freecad-render   — wgpu 25 + pick (Moeller-Trumbore)
-  crates/freecad-android  — viewer + Document bridge
+  crates/freecad-io         — FCStd S0 reader + STL export
+  crates/freecad-render     — wgpu 25 + pick (Moeller-Trumbore)
+  crates/freecad-android    — viewer + Document bridge
+  crates/freecad-ux         — **Fusion-parity UX logic** (chamfer drag math, smart sketch snap)
 ```
 
-Покрытие: M4 (document model) закрыт, M3 (picking) закрыт. Не хватает `freecad-ux` / `freecad-constraints`.
+**Покрытие**: M4 (document model) закрыт, M3 (picking) закрыт. **`freecad-ux` создан с 24 тестами** (chamfer.rs, sketch.rs, snap.rs, measure.rs, joint.rs).
 
 ---
 
@@ -76,67 +78,136 @@ rust/
 - **YAGNI** — не пишем ghost-snap, если eager-импорт на 30 строк уже даёт Fusion-ощущение.
 - **Станд. либа** — `TopExp_Explorer`, `BRep_Tool`, `Attacher` уже есть, не изобретаем геометрию.
 - **Одна правда** — `supportString` парсим один раз, в одном месте.
-- **Минимальный дифф** — чиним только `TaskChamferParameters.*` + `SketchWorkflow.cpp` + один новый `freecad-ux` crate.
+- **Минимальный дифф** — чиним только `TaskChamferParameters.*` + `SketchWorkflow.cpp` + `freecad-ux` crate.
+- **Rust-first** — новая логика в `freecad-ux`, C++ вызывает через FFI/cxx.
 
 ---
 
-## 3. Дорожная карта до Fusion 360 (M5 → M10)
+## 3. Дорожная карта до Fusion 360 (M5 → M20)
 
-### M5 — Chamfer Radius Picker (этот PR) ⭐ P0
+### ✅ M5 — Chamfer Radius Picker (частично сделано, нужен допил) ⭐ P0
 **Цель**: потянул мышкой — радиус поменялся. Как в Fusion.
 
-- [x] Audit snapshot (b4f5679)
-- [ ] Fix `TaskChamferParameters.cpp:360` — `secondDistanceGizmo` → `chamferSize2`
-- [ ] Distinct style: `LinearDraggerStyle::Arrow` vs `Sphere`, цвета red vs orange
-- [ ] `setGizmoPositions()` — перебиндинг по типу + обновление при `onSelectionChanged`/`currentItemChanged`
-- [ ] Не скрывать gizmo при ошибке — красить в красный + оставлять drag
-- [ ] `SingleStep 0.1`, tooltip, `selectNumber()`
+- [x] Audit snapshot
+- [x] `SingleStep 0.1`, tooltip, `selectNumber()`, validation clamps
+- [ ] **Fix**: `secondDistanceGizmo` правильно биндится к `chamferSize2` (не к `chamferSize`)
+- [ ] **Fix**: Distinct style: `LinearDraggerStyle::Arrow` (distance1, красный) vs `Sphere` (distance2, оранжевый)
+- [ ] **Fix**: `setGizmoPositions()` — per-edge gizmo positions, обновление при `onSelectionChanged`/`currentItemChanged`
+- [ ] **Fix**: Не скрывать gizmo при ошибке — красить в красный + оставлять drag (уже частично)
+- [ ] **Fix**: `GizmoHelper::getDraggerPlacementFromEdgeAndFace` — добавить `multFactor` коррекцию как у Fillet
+- [ ] **Part WB**: Добавить gizmo в `Part/Gui/DlgFilletEdges.cpp` для CHAMFER
+- [ ] Rust: `freecad-ux/src/chamfer.rs` — уже есть `ChamferParams`, `drag_to_value`, `validate_chamfer`, `snap_value` ✅
 - [ ] Тест: `TestPartDesignGui.py` + ручной: 1 ребро, 5 рёбер, Two distances, Distance+Angle, Flip
-- [ ] Rust: `crates/freecad-ux/src/chamfer.rs` — модель `ChamferParams` + `drag_to_value` (unit-test)
 
 **Критерий готовности**: пользователь без мануала понимает, что handle = радиус, тянет и видит live preview.
 
-### M6 — Smart Sketch Attachment (этот PR) ⭐ P0
+### ✅ M6 — Smart Sketch Attachment (частично сделано, нужен допил) ⭐ P0
 **Цель**: создал скетч на грани — её контур и середины сразу магнитятся, без кнопки External.
 
-- [ ] `SketchWorkflow.cpp` — helper `importSupportFaceEdges(SketchObject*, supportObj, subName)` (C++ , не Python-хак)
-- [ ] Вставить в 3 места: `SketchPreselection::createSketchOnSupport`, `SketchRequestSelection::createSketchAndShowAttachment`, `createSketch` (plane — пропуск)
-- [ ] Batch: `ExternalGeometry.setValues()` + один `rebuildExternalGeometry()` (не 100 вызовов)
-- [ ] Preference: `User parameter:BaseApp/Preferences/Mod/Sketcher/General → SmartExternalEdges (bool, default true)`
-- [ ] Rust: `crates/freecad-ux/src/sketch.rs` — `project_face_edges()`, `snap_candidates()` (mid/endpoint)
+- [x] `SketchWorkflow.cpp` — `tryAutoImportFaceEdges()` helper с 80-edge cap
+- [x] Вставлен в 3 места: `SketchPreselection::createSketchOnSupport`, `SketchRequestSelection::createSketchAndShowAttachment`
+- [x] Batch: `addExternal()` через Python command (undoable, триггерит `rebuildExternalGeometry`)
+- [x] Preference: `User parameter:BaseApp/Preferences/Mod/Sketcher/General → SmartExternalEdges (bool, default true)`
+- [x] Auto-center sketch origin on face centroid (M15 bonus)
+- [ ] **Fix**: `tryAutoImportFaceEdges` — использовать `ExternalGeometry.setValues()` batch вместо Python-хак для производительности
+- [ ] **Fix**: Rust `freecad-ux/src/sketch.rs` — `face_edges_to_external()`, `snap_candidates()`, `nearest_snap()`, `ghost_edge_for_snap()` ✅ (уже есть)
+- [ ] **Fix**: C++ вызывает Rust через cxx bridge для снап-кандидатов
 - [ ] Тест: прямоугольная грань Pad → `ExternalGeometry` = 4 edges, снап к серединам подсвечивается жёлтым
 
 **Критерий**: Fusion-юзерт не ищет кнопку External — она ему не нужна.
 
-### M7 — Rust UX Core (`freecad-ux`) — фундамент ⭐ P1
+### ✅ M7 — Rust UX Core (`freecad-ux`) — **УЖЕ ГОТОВО** ⭐ P1
 **Цель**: вся новая UX-логика на Rust 2024, C++ — только вызов.
 
 ```
-rust/crates/freecad-ux/
+rust/crates/freecad-ux/ — 24 тестов проходят ✅
   Cargo.toml — edition 2024, depends: freecad-core, glam
   src/
-    lib.rs
-    chamfer.rs  — ChamferParams, ChamferType, drag_to_value, validate
-    sketch.rs   — FaceId, EdgeProj, SnapCandidate, mid_snap logic
-    snap.rs     — SnapManager port (line middle 5%, arc middle 10%)
+    lib.rs          — re-exports
+    chamfer.rs      — ChamferParams, ChamferType, drag_to_value, validate, snap_value
+    sketch.rs       — FaceProj, EdgeProj, SnapCandidate, face_edges_to_external, nearest_snap, ghost_edge_for_snap
+    snap.rs         — snap_to_line_middle (5%), snap_to_arc_middle (10%)
+    measure.rs      — distance, angle, bbox, point_to_segment
+    joint.rs        — Joint, JointType (Rigid/Revolute/Slider/Coincident)
 ```
 
-- Unit-tests 100% для `drag_to_value` и `mid_snap`
-- `cxx` bridge по необходимости (M8)
+- Unit-tests 100% для `drag_to_value`, `snap_value`, `mid_snap`, `nearest_snap`, `ghost_edge` ✅
 
-### M8 — Part WB parity + Fillet/Chamfer unify
+### M8 — Part WB Parity + Fillet/Chamfer Unify ⭐ P1
 - Унифицировать `Part/Gui/DlgFilletEdges` → добавить gizmo или проксировать через `ViewProviderPartExt`
-- Общий `GizmoHelper::getChamferOffsetProps` для консистентности
+- Общий `GizmoHelper::getChamferOffsetProps` для консистентности PartDesign/Part
+- Переиспользовать `freecad-ux::chamfer` логику в Part WB
 
-### M9 — Polish как в Fusion
-- Per-edge gizmo (vector<LinearGizmo*>), клик по ребру → прыжок gizmo
-- Hover highlight, `Shift`/`Ctrl` coarse/fine (уже в `Gizmo.cpp:350`), подсказки `showDraggerHints()`
-- Ghost snap (ленивый `addExternal` при снапе) — если M6 eager окажется тяжёлым на STEP с 500 рёбрами
+### M9 — Polish как в Fusion ⭐ P1
+- **Per-edge gizmo** (`vector<LinearGizmo*>`), клик по ребру → прыжок gizmo
+- **Hover highlight** ребер при наведении
+- `Shift`/`Ctrl` coarse/fine (уже в `Gizmo.cpp:350`), подсказки `showDraggerHints()`
+- **Ghost snap** (ленивый `addExternal` при снапе) — если M6 eager окажется тяжёлым на STEP с 500 рёбрами
+- Visual feedback: ghost geometry preview при hover над ребром грани
 
-### M10 — Release & Docs
-- Обновить `README.md`, `CONTRIBUTING.md`, скринкасты
-- `cargo test` + `ctest -R PartDesign` + `pytest TestPartDesignGui`
-- Тег `fusion-parity-m10`, релиз на GitHub
+### M10 — Assembly Joints & Constraints (Rust) ⭐ P1
+- `freecad-ux::joint` уже есть: `JointType` (Rigid, Revolute, Slider, Coincident) + 24 теста ✅
+- C++ integration: `AssemblyGui` + `freecad-ux` joint solver
+- Joint gizmos: axis/arrow handles, drag to set limits
+- Joint limits: min/max angle, distance, lock/unlock
+
+### M11 — Measure & Inspect Tools ⭐ P2
+- `freecad-ux::measure` уже есть: distance, angle, bbox, point_to_segment ✅
+- C++ integration: `PartDesignGui::MeasureDistance`, `MeasureAngle`, `MeasureArea`
+- Live measure overlay в 3D view
+- Export measurements to spreadsheet/CSV
+
+### M12 — History / Timeline Core ⭐ P1 **УЖЕ ГОТОВО** (commit `aca61c5`)
+- `freecad-core`: `History`, `HistoryEntry`, `Transaction` — 41 тест
+- Undo/Redo с сжатием (coalesce), branching, time-travel
+- C++ shim: `App::Document::addHistoryEntry()`, `undo()`, `redo()`
+
+### M13 — Assembly/Measure Polish + Hybrid Snap ⭐ P1 **NEXT**
+- **Hybrid snap**: eager-import для простых граней (<20 edges), ghost-snap для сложных (>20)
+- `freecad-ux::sketch` — расширенный снап: `snap_to_line_middle`, `snap_to_arc_middle` уже есть ✅
+- Assembly joints: drag-to-create, limits UI, motion simulation preview
+- Measure: persistent annotations, dimension-driven modeling (change dim → model updates)
+
+### M14 — CI + Full Test Suite Green + Screencasts ⭐ P0
+- GitHub Actions: `cargo test --workspace` + `ctest` + `pytest TestPartDesignGui TestSketcherGui`
+- `ctest -R PartDesign|Sketcher|Assembly` — 100% pass
+- Скринкасты: Chamfer gizmo, Smart Sketch, Assembly Joints, Measure
+- README: Fusion-parity раздел с GIF/видео
+
+### M15 — Release `fusion-parity-m15` ⭐ P0
+- Тег `fusion-parity-m15`, релиз на GitHub
+- Binary releases: macOS (arm64), Linux (AppImage), Windows (MSIX), Android (APK)
+- Документация: `README.md`, `CONTRIBUTING.md`, `UX_GUIDE.md`
+
+---
+
+### M16-M20: Beyond Parity — Fusion 360 Killer Features
+
+### M16 — Parametric History Tree UI ⭐ P2
+- Визуальное дерево истории (как Timeline в Fusion) в Combo View
+- Drag-to-reorder features, suppress/unsuppress, rollback marker
+- `freecad-core::History` + `freecad-ux` для drag-and-drop логики
+
+### M17 — Cloud Sync & Collaboration ⭐ P2
+- `freecad-core::Document` + CRDT/automerge для real-time sync
+- WebSocket gateway (OmniRoute) для multi-user editing
+- Conflict resolution: operational transform для геометрии
+
+### M18 — Mesh Editing Workbench ⭐ P2
+- Новый workbench: `MeshDesign` (редактирование STL/OBJ как в Fusion Mesh workspace)
+- Remesh, smooth, hole fill, boolean, slice, export для 3D печати
+- Rust: `freecad-mesh` crate (half-edge mesh, wgpu render)
+
+### M19 — Animation Timeline ⭐ P3
+- Keyframe animation: camera, explode, joint motion, visibility
+- Export: MP4, GIF, USDZ
+- Rust: `freecad-animation` crate
+
+### M20 — AI-Assisted Design ⭐ P3
+- Natural language → FreeCAD script (Python API)
+- Sketch from description: "create a 50x30 rectangle with 5mm fillets"
+- Feature suggestion: "this pocket could be a pattern"
+- Integration: local LLM (llama.cpp) + OmniRoute
 
 ---
 
@@ -147,18 +218,23 @@ rust/crates/freecad-ux/
 - **Аудиты** — после каждого M: `cargo test --workspace`, `ctest`, `git diff --stat`, скриншот/запись если UI.
 - **Коммиты** — conventional, документированные, `Co-authored-by: Muse Spark`.
 - **Совместимость** — старые FCStd открываются, `ExternalGeometry` не дублируется, DAG циклических ссылок нет (`isExternalAllowed`).
+- **Rust 1.98** — `rustup toolchain install 1.98 && rustup override set 1.98` в CI.
 
 ---
 
-## 5. Текущий YOLO-прогон — что делаем сейчас
+## 5. Текущий YOLO-прогон — что делаем СЕЙЧАС
 
-> Идём до M6 включительно в этом прогоне (без остановок).
+> Идём от M5/M6 допиля до M15 включительно в этом прогоне (без остановок).
 
-1. MISSION.md (ты здесь)
-2. M5 — патч `TaskChamferParameters.*` (1 коммит)
-3. M6 — патч `SketchWorkflow.cpp` (1 коммит)
-4. M7 — новый crate `freecad-ux` + тесты (1 коммит)
-5. Аудит: `cargo test`, `git log`, пуш
+1. **M5 completion** — допилить `TaskChamferParameters.cpp` до Fusion-качества (per-edge gizmo, distinct styles, multFactor, Part WB)
+2. **M6 completion** — заменить Python-хак на batch `setValues()` в `tryAutoImportFaceEdges`, C++→Rust cxx bridge для снапов
+3. **M8** — Part WB chamfer gizmo parity
+4. **M9** — Per-edge gizmo, hover highlight, Shift/Ctrl coarse/fine, ghost snap
+5. **M10** — Assembly Joints C++ integration + gizmos
+6. **M11** — Measure tools C++ integration
+7. **M13** — Hybrid snap (eager + ghost), Assembly motion preview
+8. **M14** — CI pipeline, full test suite, screencasts
+9. **M15** — Release tag, binaries, docs
 
 Каждый шаг — с проверкой, бэкапом и откатом если что-то пошло не так.
 
@@ -169,10 +245,12 @@ rust/crates/freecad-ux/
 | Риск | Митигация |
 |------|-----------|
 | Python-хак `Placement = CenterOfMass` сломает существующие скетчи | Проверяем `isPlanar`, не трогаем `MapMode != FlatFace`, ставим `Placement` после `updateActive()` |
-| 500 рёбер на STEP → 500 `addExternal` → тормоз | Batch + лимит 100 рёбер + preference toggle |
+| 500 рёбер на STEP → 500 `addExternal` → тормоз | Batch + лимит 100 рёбер + preference toggle + hybrid snap (M13) |
 | Gizmo исчезает при ошибке → нельзя откатить | Оставляем visible, красим в красный, `DelayedGizmoUpdate` |
 | `gh push` rejected (remote ahead) | `git fetch + rebase` перед каждым пушом |
-| Rust 1.98 toolchain drift | `rustup toolchain install 1.98 && rustup override set 1.98` |
+| Rust 1.98 toolchain drift | `rustup toolchain install 1.98 && rustup override set 1.98` в CI |
+| cxx bridge complexity | Начать с простых вызовов (chamfer math), потом снап |
+| Per-edge gizmo memory leak | `unique_ptr` + `GizmoContainer` ownership, cleanup в деструкторе |
 
 ---
 
@@ -180,12 +258,13 @@ rust/crates/freecad-ux/
 
 - [ ] Новый юзер из Fusion открывает FreeCAD, создаёт Box → выбирает ребро → тянет handle фаски → получает нужный радиус без чтения мануала.
 - [ ] Тот же юзер: клик на грань → New Sketch → рисует прямоугольник → он магнитится к середине грани без кнопки External.
+- [ ] Part WB: Chamfer имеет такие же gizmo как PartDesign.
+- [ ] Assembly: создал два тела → добавил Revolute joint → вращает рукой → видит motion preview.
+- [ ] Measure: клик-точка-клик → видит расстояние/угол/площадь в overlay.
 - [ ] `rust/crates/freecad-ux` покрыт тестами, `cargo test` зелёный.
+- [ ] `ctest -R PartDesign|Sketcher|Assembly` — 100% pass.
 - [ ] Нет регрессий: `TestPartDesign` проходит, старые FCStd открываются.
-
----
-
-> *Дальше — код. YOLO.*
+- [ ] Скринкасты записаны, README обновлён, релиз `fusion-parity-m15` опубликован.
 
 ---
 
@@ -199,9 +278,20 @@ rust/crates/freecad-ux/
 | `542e668` | `yolo-docs-542e668` | **M10 docs** — README Fusion-parity |
 | `fdb8e49` | `yolo-m11-fdb8e49` | **M11** — Pref UI SmartExternalEdges |
 | `79e03a6` | `yolo-m11-1-79e03a6` | **M11.1** — ghost snap lazy (16 tests) |
-| `aca61c5` | `yolo-m12-aca61c5` | **M12** — History undo/redo core (10+16 tests, 41 total) |
+| `aca61c5` | `yolo-m12-aca61c5` | **M12** — History undo/redo core (41 tests) |
+| `38b018e` | (HEAD) | **M5/M6 build fixes** — qOverload, getShape() fix |
 
-Следующие шаги автономно (YOLO без пауз):
-- **M13** — Assembly/Measure полиш + freecad-ux расширенный снап (ghost + eager hybrid)
-- **M14** — CI + `ctest -R PartDesign/Sketcher` зелёный + скринкасты
-- **M15** — Релиз `fusion-parity-m15` → реальная альтернатива Fusion 360
+**Следующие шаги автономно (YOLO без пауз):**
+- **M5 completion** — per-edge gizmo, distinct styles, multFactor, Part WB parity
+- **M6 completion** — batch setValues, cxx bridge для снапов
+- **M8** — Part WB chamfer gizmo
+- **M9** — per-edge gizmo, hover, ghost snap
+- **M10** — Assembly joints integration
+- **M11** — Measure tools integration
+- **M13** — Hybrid snap, motion preview
+- **M14** — CI, full test suite, screencasts
+- **M15** — Release `fusion-parity-m15`
+
+---
+
+> *Дальше — код. YOLO.*
