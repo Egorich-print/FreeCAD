@@ -280,16 +280,15 @@ rust/crates/freecad-ux/ — 24 тестов проходят ✅
 | `79e03a6` | `yolo-m11-1-79e03a6` | **M11.1** — ghost snap lazy (16 tests) |
 | `aca61c5` | `yolo-m12-aca61c5` | **M12** — History undo/redo core (41 tests) |
 | `38b018e` | (HEAD) | **M5/M6 build fixes** — qOverload, getShape() fix |
+| `9deed36` | `yolo-m5-9deed36` | **M5 completion** — Chamfer gizmo: distinct styles, multFactor, Part WB |
+| `37620ad` | `yolo-m8-37620ad` | **M8** — Part WB Chamfer gizmo parity |
 
 **Следующие шаги автономно (YOLO без пауз):**
-- **M5 completion** — per-edge gizmo, distinct styles, multFactor, Part WB parity
-- **M6 completion** — batch setValues, cxx bridge для снапов
-- **M8** — Part WB chamfer gizmo
-- **M9** — per-edge gizmo, hover, ghost snap
-- **M10** — Assembly joints integration
-- **M11** — Measure tools integration
-- **M13** — Hybrid snap, motion preview
-- **M14** — CI, full test suite, screencasts
+- **M9** — Per-edge gizmo, hover highlight, Shift/Ctrl coarse/fine, ghost snap
+- **M10** — Assembly Joints C++ integration + gizmos
+- **M11** — Measure tools C++ integration
+- **M13** — Hybrid snap (eager + ghost), Assembly motion preview
+- **M14** — CI pipeline, full test suite, screencasts
 - **M15** — Release `fusion-parity-m15`
 
 ---
