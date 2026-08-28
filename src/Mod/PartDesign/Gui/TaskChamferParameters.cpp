@@ -176,11 +176,11 @@ void TaskChamferParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
     if (msg.Type == Gui::SelectionChanges::AddSelection) {
         if (selectionMode == refSel) {
             referenceSelected(msg, ui->listWidgetReferences);
+            // keep gizmo in sync when new edge added (Fusion-like)
+            setGizmoPositions();
         }
     }
     else if (msg.Type == Gui::SelectionChanges::ClrSelection) {
-        // TODO: the gizmo position should be only recalculated when the feature associated
-        // with the gizmo is removed from the list
         setGizmoPositions();
     }
 }
@@ -357,8 +357,11 @@ void TaskChamferParameters::setupGizmos(ViewProviderDressUp* vp)
         return;
     }
 
+    // M5: Fusion-parity — distinct handles, correct initial binding
     distanceGizmo = new Gui::LinearGizmo(ui->chamferSize);
-    secondDistanceGizmo = new Gui::LinearGizmo(ui->chamferSize);
+    // second handle starts on Size2; for Equal distance it will be rebound to Size
+    secondDistanceGizmo = new Gui::LinearGizmo(ui->chamferSize2);
+    secondDistanceGizmo->setDraggerStyle(Gui::LinearDraggerStyle::Sphere);
     angleGizmo = new Gui::RotationGizmo(ui->chamferAngle);
 
     connect(ui->chamferType, qOverload<int>(&QComboBox::currentIndexChanged), [this](int index) {
@@ -366,29 +369,40 @@ void TaskChamferParameters::setupGizmos(ViewProviderDressUp* vp)
 
         switch (type) {
             case Part::ChamferType::equalDistance:
+                // Two handles for one value — like Fillet, helps to grasp from either face
                 secondDistanceGizmo->setVisibility(true);
                 angleGizmo->setVisibility(false);
-
                 secondDistanceGizmo->setProperty(ui->chamferSize);
-
+                distanceGizmo->setVisibility(true);
                 break;
             case Part::ChamferType::twoDistances:
                 secondDistanceGizmo->setVisibility(true);
                 angleGizmo->setVisibility(false);
-
                 secondDistanceGizmo->setProperty(ui->chamferSize2);
-
+                distanceGizmo->setVisibility(true);
                 break;
             case Part::ChamferType::distanceAngle:
                 secondDistanceGizmo->setVisibility(false);
                 angleGizmo->setVisibility(true);
+                distanceGizmo->setVisibility(true);
+                break;
         }
+        setGizmoPositions();
     });
+
+    // keep gizmo in sync when user picks reference via list
+    connect(
+        ui->listWidgetReferences,
+        &QListWidget::currentRowChanged,
+        this,
+        [this](int) { setGizmoPositions(); }
+    );
 
     gizmoContainer = GizmoContainer::create({distanceGizmo, secondDistanceGizmo, angleGizmo}, vp);
 
     setGizmoPositions();
 
+    // trigger initial visibility/binding without double emission side-effects
     ui->chamferType->currentIndexChanged(ui->chamferType->currentIndex());
     showDraggerHints();
 }
@@ -400,21 +414,47 @@ void TaskChamferParameters::setGizmoPositions()
     }
 
     auto chamfer = getObject<PartDesign::Chamfer>();
-    if (!chamfer || chamfer->isError()) {
+    if (!chamfer) {
         gizmoContainer->visible = false;
         return;
+    }
+
+    // M5: do not hide gizmo on compute error — keep it for live correction,
+    // just dim/hint; user can drag back to valid size
+    if (chamfer->isError()) {
+        // keep visible so user can drag back; actual error is shown in task panel
+        gizmoContainer->visible = true;
     }
 
     PartDesign::TopoShape baseShape = chamfer->getBaseTopoShape(true);
     auto shapes = chamfer->getContinuousEdges(baseShape);
 
-    if (shapes.size() == 0) {
+    if (shapes.empty()) {
         gizmoContainer->visible = false;
         return;
     }
     gizmoContainer->visible = true;
 
-    Part::TopoShape edge = shapes[0];
+    // Fusion-like: pick edge under list selection if any, else first continuous edge
+    Part::TopoShape edge;
+    int selRow = ui->listWidgetReferences->currentRow();
+    if (selRow >= 0 && selRow < static_cast<int>(shapes.size())) {
+        // try to resolve selected subname to actual edge; fallback to shapes[selRow]
+        QString selText = ui->listWidgetReferences->item(selRow)->text();
+        try {
+            edge = baseShape.getSubTopoShape(selText.toStdString().c_str());
+            if (edge.isNull()) {
+                edge = shapes[static_cast<size_t>(selRow)];
+            }
+        }
+        catch (...) {
+            edge = shapes[static_cast<size_t>(selRow)];
+        }
+    }
+    else {
+        edge = shapes[0];
+    }
+
     auto [face1, face2] = getAdjacentFacesFromEdge(edge, baseShape);
 
     DraggerPlacementProps props = getDraggerPlacementFromEdgeAndFace(edge, face1);
@@ -426,12 +466,21 @@ void TaskChamferParameters::setGizmoPositions()
     distanceGizmo->Gizmo::setDraggerPlacement(props.position, props.dir);
     secondDistanceGizmo->Gizmo::setDraggerPlacement(props2.position, props2.dir);
 
+    // angle handle sits below linear; for chamfer it shares edge midpoint
     angleGizmo->placeBelowLinearGizmo(distanceGizmo);
-    angleGizmo->getDraggerContainer()->setArcNormalDirection(
-        Base::convertTo<SbVec3f>(-props.dir.Cross(props2.dir))
-    );
+    Base::Vector3d cross = -props.dir.Cross(props2.dir);
+    if (cross.Length() > Precision::Confusion()) {
+        angleGizmo->getDraggerContainer()->setArcNormalDirection(Base::convertTo<SbVec3f>(cross));
+    }
     // Only show the gizmo if the chamfer type is set to distance and angle
     angleGizmo->setVisibility(getType() == 2);
+    // ensure distance handles visibility matches type (redundant safety)
+    if (getType() == 2) {
+        secondDistanceGizmo->setVisibility(false);
+    }
+    else {
+        secondDistanceGizmo->setVisibility(true);
+    }
 }
 
 //**************************************************************************

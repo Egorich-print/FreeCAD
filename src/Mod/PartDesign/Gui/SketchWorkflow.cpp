@@ -46,6 +46,7 @@
 #include <Mod/Part/App/Attacher.h>
 #include <Mod/Part/App/Part2DObject.h>
 #include <Mod/Part/App/TopoShape.h>
+#include <Mod/Sketcher/App/SketchObject.h>
 #include <Mod/Sketcher/Gui/ViewProviderSketch.h>
 
 #include <App/Document.h>
@@ -66,6 +67,35 @@ using namespace PartDesignGui;
 
 namespace
 {
+// M6: Smart sketch binding — auto-import face edges as external geometry (Fusion-like)
+inline bool isSmartExternalEnabled()
+{
+    return App::GetApplication()
+        .GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher/General")
+        ->GetBool("SmartExternalEdges", true);
+}
+
+inline void tryAutoImportFaceEdges(
+    App::DocumentObject* sketchFeat,
+    App::DocumentObject* supportObj,
+    const std::string& subName)
+{
+    if (!isSmartExternalEnabled() || !sketchFeat || !supportObj || subName.rfind("Face", 0) != 0) {
+        return;
+    }
+    // addExternal with Face auto-expands to all edges (SketchObjectExternal.cpp:781)
+    // Use python command so it is undoable and triggers rebuildExternalGeometry
+    try {
+        FCMD_OBJ_CMD(
+            sketchFeat,
+            "addExternal(\"" << supportObj->getNameInDocument() << "\",\"" << subName << "\")"
+        );
+    }
+    catch (...) {
+        // best-effort: if DAG check fails, silently skip
+    }
+}
+
 struct RejectException
 {
 };
@@ -268,17 +298,6 @@ public:
         auto Feat = activeBody->getDocument()->getObject(FeatName.c_str());
         FCMD_OBJ_CMD(Feat, "Label = 'Sketch'");
         FCMD_OBJ_CMD(Feat, "AttachmentSupport = " << supportString);
-        // Center sketch on face's geometric center for better UX
-        FCMD_OBJ_CMD(
-            Feat,
-            "import FreeCAD; "
-            "support_name = Feat.Name.split('.')[-1]; "
-            "obj_name = Feat.Name.split('.')[-2]; "
-            "obj = App.ActiveDocument.getObject(obj_name); "
-            "face = getattr(obj, support_name); "
-            "center = face.Shape.CenterOfMass; "
-            "Feat.Placement = FreeCAD.Placement(center)"
-        );
         if (sketchFilter.match()) {
             FCMD_OBJ_CMD(
                 Feat,
@@ -290,6 +309,21 @@ public:
                 Feat,
                 "MapMode = '" << Attacher::AttachEngine::getModeName(Attacher::mmFlatFace) << "'"
             );
+        }
+        // M6: smart binding — if support is a Face, import its edges as external geometry
+        // Fusion-like: contour + midpoints immediately snappable without External button
+        if (faceFilter.match()) {
+            try {
+                Gui::SelectionObject so = faceFilter.Result[0][0];
+                App::DocumentObject* supObj = so.getObject();
+                auto subs = so.getSubNames();
+                if (!subs.empty()) {
+                    // queue addExternal via python (undoable); Attacher already set above
+                    tryAutoImportFaceEdges(Feat, supObj, subs[0]);
+                }
+            }
+            catch (...) {
+            }
         }
         Gui::Command::updateActive();
         PartDesignGui::setEdit(Feat, activeBody);
@@ -629,6 +663,13 @@ private:
                         "MapMode = '" << Attacher::AttachEngine::getModeName(sugr.bestFitMode) << "'"
                     );
                     Gui::Command::updateActive();
+                    // M6: smart binding for face support in dialog path
+                    auto vals = support.getValues();
+                    auto subs = support.getSubValues();
+                    for (size_t i = 0; i < vals.size() && i < subs.size(); ++i) {
+                        tryAutoImportFaceEdges(sketch, vals[i], subs[i]);
+                    }
+                    Gui::Command::updateActive();
                 }
             }
         }
@@ -822,17 +863,6 @@ private:
         auto Feat = doc->getObject(FeatName.c_str());
         FCMD_OBJ_CMD(Feat, "Label = 'Sketch'");
         FCMD_OBJ_CMD(Feat, "AttachmentSupport = " << supportString);
-        // Center sketch on planar face's geometric center for better UX
-        FCMD_OBJ_CMD(
-            Feat,
-            "import FreeCAD; "
-            "support_name = Feat.Name.split('.')[-1]; "
-            "obj_name = Feat.Name.split('.')[-2]; "
-            "obj = App.ActiveDocument.getObject(obj_name); "
-            "face = getattr(obj, support_name); "
-            "center = face.Shape.CenterOfMass; "
-            "Feat.Placement = FreeCAD.Placement(center)"
-        );
         FCMD_OBJ_CMD(
             Feat,
             "MapMode = '" << Attacher::AttachEngine::getModeName(Attacher::mmFlatFace) << "'"

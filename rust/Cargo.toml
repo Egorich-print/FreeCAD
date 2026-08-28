@@ -7,6 +7,7 @@ members = [
     "crates/freecad-io",
     "crates/freecad-render",
     "crates/freecad-android",
+    "crates/freecad-ux",
 ]
 
 [workspace.package]
@@ -20,6 +21,7 @@ freecad-kernel = { path = "crates/freecad-kernel" }
 freecad-kernel-occt = { path = "crates/freecad-kernel-occt" }
 freecad-render = { path = "crates/freecad-render" }
 freecad-io = { path = "crates/freecad-io" }
+freecad-ux = { path = "crates/freecad-ux" }
 cxx = "1"
 cxx-build = "1"
 pollster = "0.4"
