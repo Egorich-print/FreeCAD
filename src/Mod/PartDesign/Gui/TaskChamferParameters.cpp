@@ -398,11 +398,13 @@ void TaskChamferParameters::setupGizmos(ViewProviderDressUp* vp)
         return;
     }
 
-    // M5: Fusion-parity — distinct handles, correct initial binding
+    // M5: Fusion-parity — distinct handles, correct binding, multFactor correction
     distanceGizmo = new Gui::LinearGizmo(ui->chamferSize);
-    // second handle starts on Size2; for Equal distance it will be rebound to Size
+    distanceGizmo->setDraggerStyle(Gui::LinearDraggerStyle::Arrow); // Arrow for distance1
+
     secondDistanceGizmo = new Gui::LinearGizmo(ui->chamferSize2);
-    secondDistanceGizmo->setDraggerStyle(Gui::LinearDraggerStyle::Sphere);
+    secondDistanceGizmo->setDraggerStyle(Gui::LinearDraggerStyle::Sphere); // Sphere for distance2
+
     angleGizmo = new Gui::RotationGizmo(ui->chamferAngle);
 
     connect(ui->chamferType, qOverload<int>(&QComboBox::currentIndexChanged), [this](int index) {
@@ -413,13 +415,13 @@ void TaskChamferParameters::setupGizmos(ViewProviderDressUp* vp)
                 // Two handles for one value — like Fillet, helps to grasp from either face
                 secondDistanceGizmo->setVisibility(true);
                 angleGizmo->setVisibility(false);
-                secondDistanceGizmo->setProperty(ui->chamferSize);
+                secondDistanceGizmo->setProperty(ui->chamferSize); // Both bind to Size
                 distanceGizmo->setVisibility(true);
                 break;
             case Part::ChamferType::twoDistances:
                 secondDistanceGizmo->setVisibility(true);
                 angleGizmo->setVisibility(false);
-                secondDistanceGizmo->setProperty(ui->chamferSize2);
+                secondDistanceGizmo->setProperty(ui->chamferSize2); // Bind to Size2
                 distanceGizmo->setVisibility(true);
                 break;
             case Part::ChamferType::distanceAngle:
@@ -498,18 +500,27 @@ void TaskChamferParameters::setGizmoPositions()
 
     auto [face1, face2] = getAdjacentFacesFromEdge(edge, baseShape);
 
-    DraggerPlacementProps props = getDraggerPlacementFromEdgeAndFace(edge, face1);
+    DraggerPlacementProps props1 = getDraggerPlacementFromEdgeAndFace(edge, face1);
     DraggerPlacementProps props2 = getDraggerPlacementFromEdgeAndFace(edge, face2);
     if (ui->flipDirection->isChecked()) {
-        std::swap(props, props2);
+        std::swap(props1, props2);
     }
 
-    distanceGizmo->Gizmo::setDraggerPlacement(props.position, props.dir);
+    distanceGizmo->Gizmo::setDraggerPlacement(props1.position, props1.dir);
     secondDistanceGizmo->Gizmo::setDraggerPlacement(props2.position, props2.dir);
+
+    // M5: multFactor correction — visual dragger length = actual value
+    // Like Fillet: correction = 1/tan(angle/2) where angle is between face normals
+    double angle = props1.dir.GetAngle(props2.dir);
+    if (angle > Precision::Confusion() && angle < M_PI - Precision::Confusion()) {
+        double correction = 1.0 / std::tan(angle / 2.0);
+        distanceGizmo->setMultFactor(correction);
+        secondDistanceGizmo->setMultFactor(correction);
+    }
 
     // angle handle sits below linear; for chamfer it shares edge midpoint
     angleGizmo->placeBelowLinearGizmo(distanceGizmo);
-    Base::Vector3d cross = -props.dir.Cross(props2.dir);
+    Base::Vector3d cross = -props1.dir.Cross(props2.dir);
     if (cross.Length() > Precision::Confusion()) {
         angleGizmo->getDraggerContainer()->setArcNormalDirection(Base::convertTo<SbVec3f>(cross));
     }
