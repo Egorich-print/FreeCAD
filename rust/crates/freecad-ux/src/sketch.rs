@@ -116,6 +116,44 @@ pub fn nearest_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<
     best.map(|(_, c)| c)
 }
 
+/// Ghost snap — find edge name to lazily import when cursor snaps to face
+/// without prior external. Returns edge name if candidate belongs to that edge.
+pub fn ghost_edge_for_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<String> {
+    let snap = nearest_snap(face, cursor, max_dist)?;
+    // find which edge owns this snap pos (endpoint/mid/center)
+    for e in &face.edges {
+        let candidates = [
+            (e.start, SnapKind::Endpoint),
+            (e.end, SnapKind::Endpoint),
+            (
+                if let Some(arc) = e.arc {
+                    let mid_ang = arc.start_angle + (arc.end_angle - arc.start_angle) * 0.5;
+                    [
+                        arc.center[0] + arc.radius * mid_ang.cos(),
+                        arc.center[1] + arc.radius * mid_ang.sin(),
+                    ]
+                } else {
+                    [(e.start[0] + e.end[0]) * 0.5, (e.start[1] + e.end[1]) * 0.5]
+                },
+                SnapKind::Midpoint,
+            ),
+        ];
+        for (pos, kind) in candidates {
+            if snap.kind == kind && (pos[0] - snap.pos[0]).abs() < 1e-6 && (pos[1] - snap.pos[1]).abs() < 1e-6 {
+                return Some(e.name.clone());
+            }
+        }
+        if let Some(arc) = e.arc
+            && snap.kind == SnapKind::Center
+            && (arc.center[0] - snap.pos[0]).abs() < 1e-6
+            && (arc.center[1] - snap.pos[1]).abs() < 1e-6
+        {
+            return Some(e.name.clone());
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -218,5 +256,13 @@ mod tests {
         assert_eq!(n.kind, SnapKind::Midpoint);
         assert_eq!(n.pos, [5.0, 0.0]);
         assert!(nearest_snap(&face, [50.0, 50.0], 1.0).is_none());
+    }
+
+    #[test]
+    fn ghost_edge_resolves() {
+        let face = rect_face();
+        let e = ghost_edge_for_snap(&face, [5.1, 0.1], 1.0).unwrap();
+        assert_eq!(e, "Edge1");
+        assert!(ghost_edge_for_snap(&face, [50.0, 50.0], 1.0).is_none());
     }
 }
