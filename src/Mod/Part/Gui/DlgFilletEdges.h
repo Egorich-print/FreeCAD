@@ -134,6 +134,11 @@ private:
     void toggleCheckState(const QModelIndex&);
     void onHighlightEdges();
 
+    // M8: Gizmo support for CHAMFER
+    void setupGizmos();
+    void setGizmoPositions();
+    void showDraggerHints();
+
 private:
     std::unique_ptr<Ui_DlgFilletEdges> ui;
     class Private;

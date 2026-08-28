@@ -54,6 +54,7 @@
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
+#include <Gui/Inventor/Draggers/Gizmo.h>
 #include <Gui/QuantitySpinBox.h>
 #include <Gui/Selection/Selection.h>
 #include <Gui/Selection/SelectionFilter.h>
@@ -64,6 +65,10 @@
 #include <Gui/Window.h>
 #include <Mod/Part/App/FeatureChamfer.h>
 #include <Mod/Part/App/FeatureFillet.h>
+#include <Mod/Part/App/GizmoHelper.h>
+#include <Mod/Part/App/PartFeature.h>
+#include <Gui/ViewProviderDragger.h>
+#include <Gui/Inventor/Draggers/SoRotationDragger.h>
 
 #include "DlgFilletEdges.h"
 #include "ui_DlgFilletEdges.h"
@@ -221,6 +226,11 @@ public:
     std::vector<int> edge_ids;
     TopTools_IndexedMapOfShape all_edges;
     TopTools_IndexedMapOfShape all_faces;
+    // M8: Gizmo support for CHAMFER
+    std::unique_ptr<Gui::GizmoContainer> gizmoContainer;
+    Gui::LinearGizmo* distanceGizmo = nullptr;
+    Gui::LinearGizmo* secondDistanceGizmo = nullptr;
+    Gui::RotationGizmo* angleGizmo = nullptr;
     using Connection = fastsignals::connection;
     Connection connectApplicationDeletedObject;
     Connection connectApplicationDeletedDocument;
@@ -314,6 +324,11 @@ DlgFilletEdges::DlgFilletEdges(
     header->setSectionsMovable(false);
     onFilletTypeActivated(0);
     findShapes();
+
+    // M8: Setup gizmos for CHAMFER mode
+    if (d->filletType == DlgFilletEdges::CHAMFER) {
+        setupGizmos();
+    }
 }
 
 /*
@@ -325,6 +340,120 @@ DlgFilletEdges::~DlgFilletEdges()
     d->connectApplicationDeletedDocument.disconnect();
     d->connectApplicationDeletedObject.disconnect();
     Gui::Selection().rmvSelectionGate();
+}
+
+// M8: Gizmo support for CHAMFER
+void DlgFilletEdges::setupGizmos()
+{
+    if (!Gui::GizmoContainer::isEnabled()) {
+        return;
+    }
+
+    d->distanceGizmo = new Gui::LinearGizmo(ui->filletStartRadius);
+    d->distanceGizmo->setDraggerStyle(Gui::LinearDraggerStyle::Arrow);
+
+    d->secondDistanceGizmo = new Gui::LinearGizmo(ui->filletEndRadius);
+    d->secondDistanceGizmo->setDraggerStyle(Gui::LinearDraggerStyle::Sphere);
+
+    d->angleGizmo = new Gui::RotationGizmo(nullptr); // No angle spinbox in Part WB
+
+    // Get view provider for the fillet/chamfer object
+    auto vp = Base::freecad_cast<Gui::ViewProviderDragger*>(
+        Gui::Application::Instance->getViewProvider(d->fillet)
+    );
+    if (!vp) {
+        delete d->distanceGizmo;
+        delete d->secondDistanceGizmo;
+        delete d->angleGizmo;
+        return;
+    }
+
+    d->gizmoContainer = Gui::GizmoContainer::create({d->distanceGizmo, d->secondDistanceGizmo, d->angleGizmo}, vp);
+
+    // Connect fillet type combo to update gizmo visibility
+    connect(ui->filletType, qOverload<int>(&QComboBox::activated), this, &DlgFilletEdges::onFilletTypeActivated);
+
+    setGizmoPositions();
+    showDraggerHints();
+}
+
+void DlgFilletEdges::setGizmoPositions()
+{
+    if (!d->gizmoContainer) {
+        return;
+    }
+
+    if (!d->fillet) {
+        d->gizmoContainer->visible = false;
+        return;
+    }
+
+    // Get the base shape
+    Part::TopoShape baseShape = Part::Feature::getTopoShape(
+        d->fillet,
+        Part::ShapeOption::ResolveLink | Part::ShapeOption::Transform
+    );
+
+    // Get selected edges from the model
+    FilletRadiusModel* model = static_cast<FilletRadiusModel*>(ui->treeView->model());
+    std::vector<Part::TopoShape> edges;
+    for (int row = 0; row < model->rowCount(); ++row) {
+        QModelIndex index = model->index(row, 0);
+        if (model->data(index, Qt::CheckStateRole).toInt() == Qt::Checked) {
+            QString edgeName = model->data(index, Qt::DisplayRole).toString();
+            if (edgeName.startsWith("Edge")) {
+                Part::TopoShape edge = baseShape.getSubTopoShape(edgeName.toStdString().c_str());
+                if (!edge.isNull()) {
+                    edges.push_back(edge);
+                }
+            }
+        }
+    }
+
+    if (edges.empty()) {
+        d->gizmoContainer->visible = false;
+        return;
+    }
+    d->gizmoContainer->visible = true;
+
+    // Use first selected edge for gizmo placement (like PartDesign)
+    Part::TopoShape edge = edges[0];
+    auto [face1, face2] = getAdjacentFacesFromEdge(edge, baseShape);
+
+    DraggerPlacementProps props1 = getDraggerPlacementFromEdgeAndFace(edge, face1);
+    DraggerPlacementProps props2 = getDraggerPlacementFromEdgeAndFace(edge, face2);
+
+    d->distanceGizmo->Gizmo::setDraggerPlacement(props1.position, props1.dir);
+    d->secondDistanceGizmo->Gizmo::setDraggerPlacement(props2.position, props2.dir);
+
+    // M8: multFactor correction for chamfer
+    double angle = props1.dir.GetAngle(props2.dir);
+    if (angle > Precision::Confusion() && angle < M_PI - Precision::Confusion()) {
+        double correction = 1.0 / std::tan(angle / 2.0);
+        d->distanceGizmo->setMultFactor(correction);
+        d->secondDistanceGizmo->setMultFactor(correction);
+    }
+
+    // Angle gizmo (for distance-angle type, though Part WB doesn't have angle spinbox)
+    d->angleGizmo->placeBelowLinearGizmo(d->distanceGizmo);
+    Base::Vector3d cross = -props1.dir.Cross(props2.dir);
+    if (cross.Length() > Precision::Confusion()) {
+        SbVec3f sbCross(static_cast<float>(cross.x), static_cast<float>(cross.y), static_cast<float>(cross.z));
+        d->angleGizmo->getDraggerContainer()->setArcNormalDirection(sbCross);
+    }
+
+    // Update visibility based on chamfer type
+    int type = ui->filletType->currentIndex();
+    // 0 = Equal distance, 1 = Two distances
+    d->secondDistanceGizmo->setVisibility(type == 1);
+    d->angleGizmo->setVisibility(false); // Part WB doesn't support Distance+Angle for chamfer
+    d->distanceGizmo->setVisibility(true);
+}
+
+void DlgFilletEdges::showDraggerHints()
+{
+    // Part WB doesn't inherit from TaskFeatureParameters, so no dragger hints for now
+    // Could be implemented by showing hints directly on the main window
 }
 
 void DlgFilletEdges::setupConnections()
