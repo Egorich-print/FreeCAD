@@ -134,14 +134,18 @@ void TaskChamferParameters::setUpUI(PartDesign::Chamfer* pcChamfer)
     ui->flipDirection->setChecked(pcChamfer->FlipDirection.getValue());
 
     ui->chamferSize->setUnit(Base::Unit::Length);
-    ui->chamferSize->setMinimum(0);
+    ui->chamferSize->setMinimum(0.0);
+    ui->chamferSize->setSingleStep(0.1);  // Fine control for radius
     ui->chamferSize->setValue(pcChamfer->Size.getValue());
+    ui->chamferSize->setToolTip(QT_TR_NOOP("Radius of the chamfer"));
     ui->chamferSize->bind(pcChamfer->Size);
     ui->chamferSize->selectNumber();
 
     ui->chamferSize2->setUnit(Base::Unit::Length);
-    ui->chamferSize2->setMinimum(0);
+    ui->chamferSize2->setMinimum(0.0);
+    ui->chamferSize2->setSingleStep(0.1);
     ui->chamferSize2->setValue(pcChamfer->Size2.getValue());
+    ui->chamferSize2->setToolTip(QT_TR_NOOP("Second radius of the chamfer"));
     ui->chamferSize2->bind(pcChamfer->Size2);
 
     ui->chamferAngle->setUnit(Base::Unit::Angle);

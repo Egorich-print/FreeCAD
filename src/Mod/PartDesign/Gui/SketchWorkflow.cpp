@@ -268,6 +268,17 @@ public:
         auto Feat = activeBody->getDocument()->getObject(FeatName.c_str());
         FCMD_OBJ_CMD(Feat, "Label = 'Sketch'");
         FCMD_OBJ_CMD(Feat, "AttachmentSupport = " << supportString);
+        // Center sketch on face's geometric center for better UX
+        FCMD_OBJ_CMD(
+            Feat,
+            "import FreeCAD; "
+            "support_name = Feat.Name.split('.')[-1]; "
+            "obj_name = Feat.Name.split('.')[-2]; "
+            "obj = App.ActiveDocument.getObject(obj_name); "
+            "face = getattr(obj, support_name); "
+            "center = face.Shape.CenterOfMass; "
+            "Feat.Placement = FreeCAD.Placement(center)"
+        );
         if (sketchFilter.match()) {
             FCMD_OBJ_CMD(
                 Feat,
@@ -811,6 +822,17 @@ private:
         auto Feat = doc->getObject(FeatName.c_str());
         FCMD_OBJ_CMD(Feat, "Label = 'Sketch'");
         FCMD_OBJ_CMD(Feat, "AttachmentSupport = " << supportString);
+        // Center sketch on planar face's geometric center for better UX
+        FCMD_OBJ_CMD(
+            Feat,
+            "import FreeCAD; "
+            "support_name = Feat.Name.split('.')[-1]; "
+            "obj_name = Feat.Name.split('.')[-2]; "
+            "obj = App.ActiveDocument.getObject(obj_name); "
+            "face = getattr(obj, support_name); "
+            "center = face.Shape.CenterOfMass; "
+            "Feat.Placement = FreeCAD.Placement(center)"
+        );
         FCMD_OBJ_CMD(
             Feat,
             "MapMode = '" << Attacher::AttachEngine::getModeName(Attacher::mmFlatFace) << "'"
