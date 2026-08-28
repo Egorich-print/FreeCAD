@@ -69,6 +69,7 @@ public:
     }
 
     void setSelectionGate();
+    void setHoverGate(bool enable);
 
     bool event(QEvent* event) override;
 
@@ -117,6 +118,9 @@ protected:
     bool allowFaces, allowEdges;
     selectionModes selectionMode;
     int transactionID;
+
+    // M9: Hover gate for edge/face pre-selection highlight
+    std::unique_ptr<Gui::SelectionFilterGate> hoverGate;
 
     static QString stopSelectionLabel();
     static QString startSelectionLabel();

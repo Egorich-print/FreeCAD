@@ -39,6 +39,7 @@
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
 #include <Gui/Selection/Selection.h>
+#include <Gui/Selection/SelectionFilter.h>
 #include <Gui/Tools.h>
 #include <Gui/WaitCursor.h>
 #include <Mod/PartDesign/App/Body.h>
@@ -442,7 +443,6 @@ Part::Feature* TaskDressUpParameters::getBase() const
 
     return nullptr;
 }
-
 void TaskDressUpParameters::setSelectionMode(selectionModes mode)
 {
     if (DressUpView.expired()) {
@@ -471,14 +471,43 @@ void TaskDressUpParameters::setSelectionMode(selectionModes mode)
         DressUpView->showPreviousFeature(true);
     }
     setSelectionGate();
+    // M9: Always keep hover gate for edge/face pre-selection highlight
+    setHoverGate(true);
     Gui::Selection().clearSelection();
 }
+
+// M9: Hover gate for edge/face pre-selection highlight (always active when task panel open)
+void TaskDressUpParameters::setHoverGate(bool enable)
+{
+    if (enable && !hoverGate) {
+        AllowSelectionFlags allow;
+        allow.setFlag(AllowSelection::EDGE, allowEdges);
+        allow.setFlag(AllowSelection::FACE, allowFaces);
+        hoverGate = std::make_unique<ReferenceSelection>(this->getBase(), allow);
+        Gui::Selection().addSelectionGate(hoverGate.release());
+    }
+    else if (!enable && hoverGate) {
+        // Note: Can't easily remove specific gate without Selection API change
+        Gui::Selection().rmvSelectionGate();
+    }
+}
+
 void TaskDressUpParameters::setSelectionGate()
 {
     if (selectionMode == none) {
-        Gui::Selection().rmvSelectionGate();
+        // M9: Don't remove gate - keep hover gate for pre-selection highlight
+        // Actual selection is blocked in derived class onSelectionChanged() when mode == none
+        // If no gate exists, create one for hover
+        if (!hoverGate) {
+            AllowSelectionFlags allow;
+            allow.setFlag(AllowSelection::EDGE, allowEdges);
+            allow.setFlag(AllowSelection::FACE, allowFaces);
+            hoverGate = std::make_unique<ReferenceSelection>(this->getBase(), allow);
+            Gui::Selection().addSelectionGate(hoverGate.release());
+        }
     }
     else {
+        // Replace hover gate with selection gate for actual selection
         AllowSelectionFlags allow;
         allow.setFlag(AllowSelection::EDGE, allowEdges);
         allow.setFlag(AllowSelection::FACE, allowFaces);
