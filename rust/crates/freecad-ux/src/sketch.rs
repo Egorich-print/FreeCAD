@@ -139,7 +139,10 @@ pub fn ghost_edge_for_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> 
             ),
         ];
         for (pos, kind) in candidates {
-            if snap.kind == kind && (pos[0] - snap.pos[0]).abs() < 1e-6 && (pos[1] - snap.pos[1]).abs() < 1e-6 {
+            if snap.kind == kind
+                && (pos[0] - snap.pos[0]).abs() < 1e-6
+                && (pos[1] - snap.pos[1]).abs() < 1e-6
+            {
                 return Some(e.name.clone());
             }
         }

@@ -1,10 +1,12 @@
 pub mod document;
+pub mod history;
 pub mod ids;
 pub mod mesh;
 pub mod prim;
 pub mod selection;
 
 pub use document::{Document, ObjectId, Placement, SceneObject};
+pub use history::{History, Transaction};
 pub use ids::ShapeId;
 pub use mesh::{BoundingBox, FaceRange, MeshBuffer, MeshError};
 pub use selection::{
