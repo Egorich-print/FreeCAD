@@ -279,14 +279,15 @@ rust/crates/freecad-ux/ — 24 тестов проходят ✅
 | `fdb8e49` | `yolo-m11-fdb8e49` | **M11** — Pref UI SmartExternalEdges |
 | `79e03a6` | `yolo-m11-1-79e03a6` | **M11.1** — ghost snap lazy (16 tests) |
 | `aca61c5` | `yolo-m12-aca61c5` | **M12** — History undo/redo core (41 tests) |
-| `38b018e` | (HEAD) | **M5/M6 build fixes** — qOverload, getShape() fix |
+| `38b018e` | | **M5/M6 build fixes** — qOverload, getShape() fix |
 | `9deed36` | `yolo-m5-9deed36` | **M5 completion** — Chamfer gizmo: distinct styles, multFactor, Part WB |
 | `37620ad` | `yolo-m8-37620ad` | **M8** — Part WB Chamfer gizmo parity |
+| `532da93` | `yolo-m9-532da93` | **M9** — Hover highlight for Chamfer/Fillet edges |
 
 **Следующие шаги автономно (YOLO без пауз):**
-- **M9** — Per-edge gizmo, hover highlight, Shift/Ctrl coarse/fine, ghost snap
-- **M10** — Assembly Joints C++ integration + gizmos
-- **M11** — Measure tools C++ integration
+- **M9 remaining** — Per-edge gizmo, Shift/Ctrl coarse/fine, ghost snap
+- **M10** — Assembly Joints C++ integration + gizmos (axis/arrow handles, limits UI, motion preview)
+- **M11** — Measure tools C++ integration (distance/angle/area overlay)
 - **M13** — Hybrid snap (eager + ghost), Assembly motion preview
 - **M14** — CI pipeline, full test suite, screencasts
 - **M15** — Release `fusion-parity-m15`
