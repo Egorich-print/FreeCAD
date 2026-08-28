@@ -359,22 +359,24 @@ public:
                 }
                 // M15: Auto-center sketch origin on face's geometric centroid
                 try {
-                    Part::TopoShape faceShape = supObj->getSubShape(subs[0].c_str());
-                    if (!faceShape.isNull()) {
-                        TopoDS_Face face = TopoDS::Face(faceShape.getShape());
-                        Base::Vector3d centroid = getFaceCentroid(face);
-                        FCMD_OBJ_CMD(
-                            Feat,
-                            "AttachmentOffset.Base.x = " << centroid.x
-                        );
-                        FCMD_OBJ_CMD(
-                            Feat,
-                            "AttachmentOffset.Base.y = " << centroid.y
-                        );
-                        FCMD_OBJ_CMD(
-                            Feat,
-                            "AttachmentOffset.Base.z = " << centroid.z
-                        );
+                    if (auto* partFeat = dynamic_cast<Part::Feature*>(supObj)) {
+                        Part::TopoShape faceShape = partFeat->Shape.getShape().getSubShape(subs[0].c_str());
+                        if (!faceShape.isNull()) {
+                            TopoDS_Face face = TopoDS::Face(faceShape.getShape());
+                            Base::Vector3d centroid = getFaceCentroid(face);
+                            FCMD_OBJ_CMD(
+                                Feat,
+                                "AttachmentOffset.Base.x = " << centroid.x
+                            );
+                            FCMD_OBJ_CMD(
+                                Feat,
+                                "AttachmentOffset.Base.y = " << centroid.y
+                            );
+                            FCMD_OBJ_CMD(
+                                Feat,
+                                "AttachmentOffset.Base.z = " << centroid.z
+                            );
+                        }
                     }
                 }
                 catch (...) {

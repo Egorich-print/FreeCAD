@@ -142,9 +142,8 @@ void TaskChamferParameters::setUpUI(PartDesign::Chamfer* pcChamfer)
     ui->chamferSize->setToolTip(QT_TR_NOOP("Radius of the chamfer (0.1 to 10000 mm)"));
     ui->chamferSize->bind(pcChamfer->Size);
     ui->chamferSize->selectNumber();
-    // Add validation to prevent negative or invalid values
-    ui->chamferSize->setValidator(new QDoubleValidator(0.0, 10000.0, 4, this));
-    connect(ui->chamferSize, &Gui::QuantitySpinBox::valueChanged, this, [this]() {
+    // Add validation via property bounds + clamp on valueChanged
+    connect(ui->chamferSize, qOverload<double>(&Gui::QuantitySpinBox::valueChanged), this, [this]() {
         if (auto chamfer = getObject<PartDesign::Chamfer>()) {
             double value = chamfer->Size.getValue();
             if (value < 0.0) {
@@ -162,9 +161,8 @@ void TaskChamferParameters::setUpUI(PartDesign::Chamfer* pcChamfer)
     ui->chamferSize2->setValue(pcChamfer->Size2.getValue());
     ui->chamferSize2->setToolTip(QT_TR_NOOP("Second radius of the chamfer (0.1 to 10000 mm)"));
     ui->chamferSize2->bind(pcChamfer->Size2);
-    // Add validation to prevent negative or invalid values
-    ui->chamferSize2->setValidator(new QDoubleValidator(0.0, 10000.0, 4, this));
-    connect(ui->chamferSize2, &Gui::QuantitySpinBox::valueChanged, this, [this]() {
+    // Add validation via property bounds + clamp on valueChanged
+    connect(ui->chamferSize2, qOverload<double>(&Gui::QuantitySpinBox::valueChanged), this, [this]() {
         if (auto chamfer = getObject<PartDesign::Chamfer>()) {
             double value = chamfer->Size2.getValue();
             if (value < 0.0) {
@@ -182,11 +180,10 @@ void TaskChamferParameters::setUpUI(PartDesign::Chamfer* pcChamfer)
     ui->chamferAngle->setValue(pcChamfer->Angle.getValue());
     ui->chamferAngle->setToolTip(QT_TR_NOOP("Chamfer angle (0-90° typical)"));
     ui->chamferAngle->bind(pcChamfer->Angle);
-    // Add validation to prevent invalid values (angle already has min/max from property)
+    // Add validation via property bounds + clamp on valueChanged
     double angleMin = pcChamfer->Angle.getMinimum();
     double angleMax = pcChamfer->Angle.getMaximum();
-    ui->chamferAngle->setValidator(new QDoubleValidator(angleMin, angleMax, 1, this));
-    connect(ui->chamferAngle, &Gui::QuantitySpinBox::valueChanged, this, [this, angleMin, angleMax]() {
+    connect(ui->chamferAngle, qOverload<double>(&Gui::QuantitySpinBox::valueChanged), this, [this, angleMin, angleMax]() {
         if (auto chamfer = getObject<PartDesign::Chamfer>()) {
             double value = chamfer->Angle.getValue();
             if (value < angleMin) {
