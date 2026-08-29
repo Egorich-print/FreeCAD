@@ -225,6 +225,22 @@ void TaskChamferParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
     else if (msg.Type == Gui::SelectionChanges::ClrSelection) {
         setGizmoPositions();
     }
+    // M9 per-edge hover: gizmo follows preselected edge when not in selection mode (Fusion-like preview)
+    else if (msg.Type == Gui::SelectionChanges::SetPreselect) {
+        if (selectionMode == none && msg.pSubName) {
+            QString sub = QString::fromLatin1(msg.pSubName);
+            if (sub.startsWith(QLatin1String("Edge"))) {
+                hoverEdgeSubName = sub;
+                setGizmoForEdge(sub);
+            }
+        }
+    }
+    else if (msg.Type == Gui::SelectionChanges::RmvPreselect) {
+        if (selectionMode == none && !hoverEdgeSubName.isEmpty()) {
+            hoverEdgeSubName.clear();
+            setGizmoPositions();
+        }
+    }
 }
 
 void TaskChamferParameters::onCheckBoxUseAllEdgesToggled(bool checked)
@@ -534,6 +550,53 @@ void TaskChamferParameters::setGizmoPositions()
     }
     else {
         secondDistanceGizmo->setVisibility(true);
+    }
+}
+
+void TaskChamferParameters::setGizmoForEdge(const QString& subName)
+{
+    if (!gizmoContainer) {
+        return;
+    }
+    auto chamfer = getObject<PartDesign::Chamfer>();
+    if (!chamfer) {
+        return;
+    }
+    PartDesign::TopoShape baseShape = chamfer->getBaseTopoShape(true);
+    auto shapes = chamfer->getContinuousEdges(baseShape);
+    if (shapes.empty()) {
+        return;
+    }
+    Part::TopoShape edge;
+    try {
+        edge = baseShape.getSubTopoShape(subName.toStdString().c_str());
+    }
+    catch (...) {
+        return;
+    }
+    if (edge.isNull()) {
+        return;
+    }
+    gizmoContainer->visible = true;
+    auto [face1, face2] = getAdjacentFacesFromEdge(edge, baseShape);
+    DraggerPlacementProps p1 = getDraggerPlacementFromEdgeAndFace(edge, face1);
+    DraggerPlacementProps p2 = getDraggerPlacementFromEdgeAndFace(edge, face2);
+    if (ui->flipDirection->isChecked()) {
+        std::swap(p1, p2);
+    }
+    distanceGizmo->Gizmo::setDraggerPlacement(p1.position, p1.dir);
+    secondDistanceGizmo->Gizmo::setDraggerPlacement(p2.position, p2.dir);
+    double ang = p1.dir.GetAngle(p2.dir);
+    double corr = 1.0;
+    if (ang > Precision::Confusion() && ang < M_PI - Precision::Confusion()) {
+        corr = 1.0 / std::tan(ang / 2.0);
+    }
+    distanceGizmo->setMultFactor(corr);
+    secondDistanceGizmo->setMultFactor(corr);
+    angleGizmo->placeBelowLinearGizmo(distanceGizmo);
+    Base::Vector3d cr = -p1.dir.Cross(p2.dir);
+    if (cr.Length() > Precision::Confusion()) {
+        angleGizmo->getDraggerContainer()->setArcNormalDirection(Base::convertTo<SbVec3f>(cr));
     }
 }
 

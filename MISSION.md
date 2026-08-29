@@ -223,19 +223,17 @@ rust/crates/freecad-ux/ — 24 тестов проходят ✅
 
 ## 5. Текущий YOLO-прогон — что делаем СЕЙЧАС
 
-> Идём от M5/M6 допиля до M15 включительно в этом прогоне (без остановок).
+> YOLO sprint 2026-08-29 — M9-M11 (запущен 9f7bdf8, бэкап `/tmp/freecad-yolo-sprint-m9m11-20260829-9f7bdf8.tgz`).
 
-1. **M5 completion** — допилить `TaskChamferParameters.cpp` до Fusion-качества (per-edge gizmo, distinct styles, multFactor, Part WB)
-2. **M6 completion** — заменить Python-хак на batch `setValues()` в `tryAutoImportFaceEdges`, C++→Rust cxx bridge для снапов
-3. **M8** — Part WB chamfer gizmo parity
-4. **M9** — Per-edge gizmo, hover highlight, Shift/Ctrl coarse/fine, ghost snap
-5. **M10** — Assembly Joints C++ integration + gizmos
-6. **M11** — Measure tools C++ integration
-7. **M13** — Hybrid snap (eager + ghost), Assembly motion preview
-8. **M14** — CI pipeline, full test suite, screencasts
-9. **M15** — Release tag, binaries, docs
+1. **M9 hover highlight** ✅ — `TaskDressUpParameters` hover gate (Audit-fix: `hoverGateActive` bool, `Selection` owns gate)
+2. **M9 per-edge gizmo** → динамический `GizmoContainer::create` пересбор на `setGizmoPositions()` (max 8 рёбер, `GizmoContainer::visible` toggle, `multFactor` per-edge)
+3. **M9 ghost preview** — `freecad-ux::ghost_edge_for_snap` уже 24 теста, добавить полупрозрачный overlay в `Sketcher/Gui` (M13 hybrid заготовка)
+4. **M10 Assembly joints** — `freecad-ux::joint` (Rigid/Revolute/Slider) → `AssemblyGui` gizmo skeleton (axis arrow, limits stub)
+5. **M11 Measure** — `freecad-ux::measure` → overlay `ViewProvider` (distance/angle/bbox) + `freecad-ux` tests 5
+6. **M13 hybrid snap** — eager `<=80` + ghost `>80`, thresholds 5%/10% уже в `freecad-ux`, C++ `Sketcher` интеграция
+7. **M14/M15** — CI + release (следующий спринт)
 
-Каждый шаг — с проверкой, бэкапом и откатом если что-то пошло не так.
+Каждый шаг — `cargo test --workspace` + `ctest` + `cargo fmt` + `pixi run build-release`, коммит с `Co-authored-by`, `git tag yolo-m*`, push `origin/main`.
 
 ---
 

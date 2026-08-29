@@ -86,8 +86,11 @@ private:
     Gui::LinearGizmo* distanceGizmo = nullptr;
     Gui::LinearGizmo* secondDistanceGizmo = nullptr;
     Gui::RotationGizmo* angleGizmo = nullptr;
+    // M9 per-edge: hover preview
+    QString hoverEdgeSubName;
     void setupGizmos(ViewProviderDressUp* vp);
     void setGizmoPositions();
+    void setGizmoForEdge(const QString& subName);
 };
 
 /// simulation dialog for the TaskView
