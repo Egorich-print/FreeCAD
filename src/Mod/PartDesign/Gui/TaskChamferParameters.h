@@ -39,7 +39,7 @@ class Chamfer;
 namespace Gui
 {
 class LinearGizmo;
-class RotationalGizmo;
+class RotationGizmo;
 class GizmoContainer;
 }  // namespace Gui
 

@@ -69,6 +69,7 @@
 #include <Mod/Part/App/PartFeature.h>
 #include <Gui/ViewProviderDragger.h>
 #include <Gui/Inventor/Draggers/SoRotationDragger.h>
+#include <Precision.hxx>
 
 #include "DlgFilletEdges.h"
 #include "ui_DlgFilletEdges.h"
@@ -342,11 +343,14 @@ DlgFilletEdges::~DlgFilletEdges()
     Gui::Selection().rmvSelectionGate();
 }
 
-// M8: Gizmo support for CHAMFER
+// M8: Gizmo support for CHAMFER — Part WB parity (no angle UI → no RotationGizmo)
 void DlgFilletEdges::setupGizmos()
 {
     if (!Gui::GizmoContainer::isEnabled()) {
         return;
+    }
+    if (d->filletType != DlgFilletEdges::CHAMFER) {
+        return; // only chamfer gets gizmo in Part WB (fillet uses PartDesign)
     }
 
     d->distanceGizmo = new Gui::LinearGizmo(ui->filletStartRadius);
@@ -355,7 +359,7 @@ void DlgFilletEdges::setupGizmos()
     d->secondDistanceGizmo = new Gui::LinearGizmo(ui->filletEndRadius);
     d->secondDistanceGizmo->setDraggerStyle(Gui::LinearDraggerStyle::Sphere);
 
-    d->angleGizmo = new Gui::RotationGizmo(nullptr); // No angle spinbox in Part WB
+    d->angleGizmo = nullptr; // Part WB chamfer has no angle spinbox — no rotation gizmo
 
     // Get view provider for the fillet/chamfer object
     auto vp = Base::freecad_cast<Gui::ViewProviderDragger*>(
@@ -364,17 +368,15 @@ void DlgFilletEdges::setupGizmos()
     if (!vp) {
         delete d->distanceGizmo;
         delete d->secondDistanceGizmo;
-        delete d->angleGizmo;
+        // angleGizmo is nullptr — nothing to delete
+        d->distanceGizmo = nullptr;
+        d->secondDistanceGizmo = nullptr;
         return;
     }
 
-    d->gizmoContainer = Gui::GizmoContainer::create({d->distanceGizmo, d->secondDistanceGizmo, d->angleGizmo}, vp);
-
-    // Connect fillet type combo to update gizmo visibility
-    connect(ui->filletType, qOverload<int>(&QComboBox::activated), this, &DlgFilletEdges::onFilletTypeActivated);
+    d->gizmoContainer = Gui::GizmoContainer::create({d->distanceGizmo, d->secondDistanceGizmo}, vp);
 
     setGizmoPositions();
-    showDraggerHints();
 }
 
 void DlgFilletEdges::setGizmoPositions()
@@ -386,6 +388,10 @@ void DlgFilletEdges::setGizmoPositions()
     if (!d->fillet) {
         d->gizmoContainer->visible = false;
         return;
+    }
+    if (d->fillet->isError()) {
+        // keep visible so user can drag back to valid size
+        d->gizmoContainer->visible = true;
     }
 
     // Get the base shape
@@ -426,27 +432,22 @@ void DlgFilletEdges::setGizmoPositions()
     d->distanceGizmo->Gizmo::setDraggerPlacement(props1.position, props1.dir);
     d->secondDistanceGizmo->Gizmo::setDraggerPlacement(props2.position, props2.dir);
 
-    // M8: multFactor correction for chamfer
+    // M8: multFactor correction for chamfer — reset to 1.0 when angle degenerate
     double angle = props1.dir.GetAngle(props2.dir);
+    double correction = 1.0;
     if (angle > Precision::Confusion() && angle < M_PI - Precision::Confusion()) {
-        double correction = 1.0 / std::tan(angle / 2.0);
-        d->distanceGizmo->setMultFactor(correction);
-        d->secondDistanceGizmo->setMultFactor(correction);
+        correction = 1.0 / std::tan(angle / 2.0);
     }
-
-    // Angle gizmo (for distance-angle type, though Part WB doesn't have angle spinbox)
-    d->angleGizmo->placeBelowLinearGizmo(d->distanceGizmo);
-    Base::Vector3d cross = -props1.dir.Cross(props2.dir);
-    if (cross.Length() > Precision::Confusion()) {
-        SbVec3f sbCross(static_cast<float>(cross.x), static_cast<float>(cross.y), static_cast<float>(cross.z));
-        d->angleGizmo->getDraggerContainer()->setArcNormalDirection(sbCross);
-    }
+    d->distanceGizmo->setMultFactor(correction);
+    d->secondDistanceGizmo->setMultFactor(correction);
 
     // Update visibility based on chamfer type
     int type = ui->filletType->currentIndex();
     // 0 = Equal distance, 1 = Two distances
     d->secondDistanceGizmo->setVisibility(type == 1);
-    d->angleGizmo->setVisibility(false); // Part WB doesn't support Distance+Angle for chamfer
+    if (d->angleGizmo) {
+        d->angleGizmo->setVisibility(false); // Part WB doesn't support Distance+Angle for chamfer
+    }
     d->distanceGizmo->setVisibility(true);
 }
 

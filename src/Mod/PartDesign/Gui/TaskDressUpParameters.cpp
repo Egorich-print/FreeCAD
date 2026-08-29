@@ -80,6 +80,7 @@ TaskDressUpParameters::~TaskDressUpParameters()
 {
     // make sure to remove selection gate in all cases
     Gui::Selection().rmvSelectionGate();
+    hoverGateActive = false;
 }
 
 void TaskDressUpParameters::setupTransaction()
@@ -477,41 +478,44 @@ void TaskDressUpParameters::setSelectionMode(selectionModes mode)
 }
 
 // M9: Hover gate for edge/face pre-selection highlight (always active when task panel open)
+// Selection singleton owns the gate (addSelectionGate takes ownership, rmv deletes).
+// We only track hoverGateActive bool to avoid duplicate adds.
 void TaskDressUpParameters::setHoverGate(bool enable)
 {
-    if (enable && !hoverGate) {
+    if (enable && !hoverGateActive) {
         AllowSelectionFlags allow;
         allow.setFlag(AllowSelection::EDGE, allowEdges);
         allow.setFlag(AllowSelection::FACE, allowFaces);
-        hoverGate = std::make_unique<ReferenceSelection>(this->getBase(), allow);
-        Gui::Selection().addSelectionGate(hoverGate.release());
+        Gui::Selection().addSelectionGate(new ReferenceSelection(this->getBase(), allow));
+        hoverGateActive = true;
     }
-    else if (!enable && hoverGate) {
-        // Note: Can't easily remove specific gate without Selection API change
+    else if (!enable && hoverGateActive) {
         Gui::Selection().rmvSelectionGate();
+        hoverGateActive = false;
     }
 }
 
 void TaskDressUpParameters::setSelectionGate()
 {
     if (selectionMode == none) {
-        // M9: Don't remove gate - keep hover gate for pre-selection highlight
-        // Actual selection is blocked in derived class onSelectionChanged() when mode == none
-        // If no gate exists, create one for hover
-        if (!hoverGate) {
+        // M9: Keep hover gate for pre-selection highlight (don't remove).
+        // Actual selection is blocked in derived onSelectionChanged() when mode == none.
+        if (!hoverGateActive) {
             AllowSelectionFlags allow;
             allow.setFlag(AllowSelection::EDGE, allowEdges);
             allow.setFlag(AllowSelection::FACE, allowFaces);
-            hoverGate = std::make_unique<ReferenceSelection>(this->getBase(), allow);
-            Gui::Selection().addSelectionGate(hoverGate.release());
+            Gui::Selection().addSelectionGate(new ReferenceSelection(this->getBase(), allow));
+            hoverGateActive = true;
         }
     }
     else {
-        // Replace hover gate with selection gate for actual selection
+        // Replace hover gate with selection gate for actual selection (addSelectionGate
+        // internally rmvSelectionGate if ActiveGate exists, so no leak).
         AllowSelectionFlags allow;
         allow.setFlag(AllowSelection::EDGE, allowEdges);
         allow.setFlag(AllowSelection::FACE, allowFaces);
         Gui::Selection().addSelectionGate(new ReferenceSelection(this->getBase(), allow));
+        hoverGateActive = true;
     }
 }
 

@@ -97,7 +97,7 @@ inline void tryAutoImportFaceEdges(
     if (!isSmartExternalEnabled() || !sketchFeat || !supportObj || subName.rfind("Face", 0) != 0) {
         return;
     }
-    // Guard: large STEP faces with >100 edges would create heavy ExternalGeo; cap
+    // Guard: large STEP faces with >80 edges would create heavy ExternalGeo; cap
     try {
         if (auto* partFeat = dynamic_cast<Part::Feature*>(supportObj)) {
             const Part::TopoShape shape = partFeat->Shape.getValue();

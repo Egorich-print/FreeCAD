@@ -56,8 +56,10 @@ impl FaceProj {
                 kind: SnapKind::Endpoint,
             });
             let mid = if let Some(arc) = e.arc {
-                // arc middle via bisector
-                let mid_ang = arc.start_angle + (arc.end_angle - arc.start_angle) * 0.5;
+                // arc middle via bisector — preserve sweep via rem_euclid for reflex/crossing-zero arcs
+                let sweep =
+                    (arc.end_angle - arc.start_angle).rem_euclid(2.0 * std::f64::consts::PI);
+                let mid_ang = arc.start_angle + sweep * 0.5;
                 [
                     arc.center[0] + arc.radius * mid_ang.cos(),
                     arc.center[1] + arc.radius * mid_ang.sin(),
@@ -81,12 +83,17 @@ impl FaceProj {
 }
 
 /// Threshold for mid snap: 5% of length (line) or 10% of sweep (arc)
+/// For lines: 5% of length. For arcs: use sweep*0.10 via snap_to_arc_middle.
 pub fn mid_snap_threshold(len: f64) -> f64 {
+    if !len.is_finite() || len <= 0.0 {
+        return 0.0;
+    }
     len * 0.05
 }
 
 /// Decide which external edges to import for a new sketch on face.
-/// Fusion-like: import all boundary edges (no filtering), but cap at 200 to avoid STEP blowups.
+/// Fusion-like: import all boundary edges (no filtering). Caller passes cap
+/// (80 for auto-import policy in C++ tryAutoImportFaceEdges, 200 for manual bulk).
 pub fn face_edges_to_external(face: &FaceProj, max_edges: usize) -> Vec<String> {
     face.edges
         .iter()
@@ -96,6 +103,7 @@ pub fn face_edges_to_external(face: &FaceProj, max_edges: usize) -> Vec<String> 
 }
 
 /// Smart external policy — mirrors C++ tryAutoImportFaceEdges cap (80 edges)
+/// Returns false for >80 edges to avoid STEP blowups (separate from 200 hard cap).
 pub fn should_auto_import(face: &FaceProj) -> bool {
     face.edges.len() <= 80
 }
@@ -118,41 +126,25 @@ pub fn nearest_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<
 
 /// Ghost snap — find edge name to lazily import when cursor snaps to face
 /// without prior external. Returns edge name if candidate belongs to that edge.
+/// Reuses snap_candidates() mapping to avoid duplicating midpoint math.
 pub fn ghost_edge_for_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<String> {
     let snap = nearest_snap(face, cursor, max_dist)?;
-    // find which edge owns this snap pos (endpoint/mid/center)
+    // Reuse canonical candidates with edge index to avoid trig duplication.
+    let candidates = face.snap_candidates();
+    // snap_candidates order per edge: start Endpoint, end Endpoint, Midpoint, [Center]
+    let mut idx = 0usize;
     for e in &face.edges {
-        let candidates = [
-            (e.start, SnapKind::Endpoint),
-            (e.end, SnapKind::Endpoint),
-            (
-                if let Some(arc) = e.arc {
-                    let mid_ang = arc.start_angle + (arc.end_angle - arc.start_angle) * 0.5;
-                    [
-                        arc.center[0] + arc.radius * mid_ang.cos(),
-                        arc.center[1] + arc.radius * mid_ang.sin(),
-                    ]
-                } else {
-                    [(e.start[0] + e.end[0]) * 0.5, (e.start[1] + e.end[1]) * 0.5]
-                },
-                SnapKind::Midpoint,
-            ),
-        ];
-        for (pos, kind) in candidates {
-            if snap.kind == kind
-                && (pos[0] - snap.pos[0]).abs() < 1e-6
-                && (pos[1] - snap.pos[1]).abs() < 1e-6
+        let per_edge = if e.arc.is_some() { 4 } else { 3 };
+        for k in 0..per_edge {
+            let c = candidates[idx + k];
+            if c.kind == snap.kind
+                && (c.pos[0] - snap.pos[0]).abs() < 1e-6
+                && (c.pos[1] - snap.pos[1]).abs() < 1e-6
             {
                 return Some(e.name.clone());
             }
         }
-        if let Some(arc) = e.arc
-            && snap.kind == SnapKind::Center
-            && (arc.center[0] - snap.pos[0]).abs() < 1e-6
-            && (arc.center[1] - snap.pos[1]).abs() < 1e-6
-        {
-            return Some(e.name.clone());
-        }
+        idx += per_edge;
     }
     None
 }

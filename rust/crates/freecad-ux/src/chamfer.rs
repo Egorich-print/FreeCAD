@@ -46,10 +46,14 @@ impl Default for ChamferParams {
 
 /// Validate chamfer params — mirrors FeatureChamfer::execute checks
 pub fn validate_chamfer(p: &ChamferParams) -> Result<(), &'static str> {
+    if !p.size.is_finite() || !p.size2.is_finite() || !p.angle_deg.is_finite() {
+        return Err("params must be finite");
+    }
     if p.size < 0.0 || p.size2 < 0.0 {
         return Err("size must be >= 0");
     }
-    if p.angle_deg < 0.0 || p.angle_deg > 180.0 {
+    // angle only relevant for DistanceAngle; other types ignore it (keep lenient)
+    if p.chamfer_type == ChamferType::DistanceAngle && (p.angle_deg < 0.0 || p.angle_deg > 180.0) {
         return Err("angle must be in [0,180]");
     }
     // BRepFilletAPI_MakeChamfer fails if size is too large for edge; we clamp at 1e4
@@ -63,12 +67,17 @@ pub fn validate_chamfer(p: &ChamferParams) -> Result<(), &'static str> {
 /// Mirrors LinearGizmo::draggingContinued: value = initial + dragLength
 /// where dragLength = (incCount*inc - addFactor)/multFactor
 pub fn drag_to_value(initial: f64, drag_length: f64, min: f64, max: f64) -> f64 {
-    let mut v = initial + drag_length;
-    if v < min {
-        v = min;
+    if !initial.is_finite() || !drag_length.is_finite() || !min.is_finite() || !max.is_finite() {
+        return min;
     }
-    if v > max {
-        v = max;
+    // defensive: ensure min <= max
+    let (lo, hi) = if min <= max { (min, max) } else { (max, min) };
+    let mut v = initial + drag_length;
+    if v < lo {
+        v = lo;
+    }
+    if v > hi {
+        v = hi;
     }
     v
 }

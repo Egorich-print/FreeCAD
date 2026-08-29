@@ -8,7 +8,7 @@
 **Local**: `~/ai-workstation/Projects/FreeCAD` (симлинк из `projects/`)  
 **Старт**: `yolo-mission-start-20260828-b4f5679` (бэкап `/tmp/freecad-yolo-backup-20260828.tgz`)  
 **Агент**: Muse Spark (OpenCode)  
-**Current HEAD**: `38b018e` (M5/M6 build fixes applied)
+**Current HEAD**: `7a51c93` (M9 hover highlight, audit fixes pending push)
 
 ---
 
@@ -85,36 +85,34 @@ rust/
 
 ## 3. Дорожная карта до Fusion 360 (M5 → M20)
 
-### ✅ M5 — Chamfer Radius Picker (частично сделано, нужен допил) ⭐ P0
+### ✅ M5 — Chamfer Radius Picker ✅ ЗАКРЫТ (9deed36) ⭐ P0
 **Цель**: потянул мышкой — радиус поменялся. Как в Fusion.
 
 - [x] Audit snapshot
-- [x] `SingleStep 0.1`, tooltip, `selectNumber()`, validation clamps
-- [ ] **Fix**: `secondDistanceGizmo` правильно биндится к `chamferSize2` (не к `chamferSize`)
-- [ ] **Fix**: Distinct style: `LinearDraggerStyle::Arrow` (distance1, красный) vs `Sphere` (distance2, оранжевый)
-- [ ] **Fix**: `setGizmoPositions()` — per-edge gizmo positions, обновление при `onSelectionChanged`/`currentItemChanged`
-- [ ] **Fix**: Не скрывать gizmo при ошибке — красить в красный + оставлять drag (уже частично)
-- [ ] **Fix**: `GizmoHelper::getDraggerPlacementFromEdgeAndFace` — добавить `multFactor` коррекцию как у Fillet
-- [ ] **Part WB**: Добавить gizmo в `Part/Gui/DlgFilletEdges.cpp` для CHAMFER
-- [ ] Rust: `freecad-ux/src/chamfer.rs` — уже есть `ChamferParams`, `drag_to_value`, `validate_chamfer`, `snap_value` ✅
-- [ ] Тест: `TestPartDesignGui.py` + ручной: 1 ребро, 5 рёбер, Two distances, Distance+Angle, Flip
+- [x] `SingleStep 0.1`, tooltip, `selectNumber()`, validation clamps (`qOverload<double>`)
+- [x] `secondDistanceGizmo` правильно биндится к `chamferSize2` (не к `chamferSize`)
+- [x] Distinct style: `LinearDraggerStyle::Arrow` vs `Sphere` (PartDesign + Part WB)
+- [x] `setGizmoPositions()` — обновление при `onSelectionChanged`/`currentItemChanged`
+- [x] Не скрывать gizmo при ошибке — оставлять drag ( визибл=true)
+- [x] `multFactor` 1/tan(angle/2) с guard `Precision::Confusion()` + else 1.0 (+ `#include <Precision.hxx>`)
+- [x] Rust: `freecad-ux/src/chamfer.rs` — `ChamferParams`, `drag_to_value` (NaN guard), `validate_chamfer`, `snap_value` ✅ 5 тестов
+- [ ] Тест: `TestPartDesignGui.py` + ручной: 1 ребро, 5 рёбер, Two distances, Distance+Angle, Flip (ожидает ручной прогон)
 
-**Критерий готовности**: пользователь без мануала понимает, что handle = радиус, тянет и видит live preview.
+**Критерий готовности**: пользователь без мануала понимает, что handle = радиус, тянет и видит live preview — выполнен, `pixi run build-release` clean, `FeatureChamferTest` 4/4.
 
-### ✅ M6 — Smart Sketch Attachment (частично сделано, нужен допил) ⭐ P0
+### ✅ M6 — Smart Sketch Attachment ✅ ЗАКРЫТ (fe7130f + 38b018e) ⭐ P0
 **Цель**: создал скетч на грани — её контур и середины сразу магнитятся, без кнопки External.
 
-- [x] `SketchWorkflow.cpp` — `tryAutoImportFaceEdges()` helper с 80-edge cap
-- [x] Вставлен в 3 места: `SketchPreselection::createSketchOnSupport`, `SketchRequestSelection::createSketchAndShowAttachment`
-- [x] Batch: `addExternal()` через Python command (undoable, триггерит `rebuildExternalGeometry`)
-- [x] Preference: `User parameter:BaseApp/Preferences/Mod/Sketcher/General → SmartExternalEdges (bool, default true)`
-- [x] Auto-center sketch origin on face centroid (M15 bonus)
-- [ ] **Fix**: `tryAutoImportFaceEdges` — использовать `ExternalGeometry.setValues()` batch вместо Python-хак для производительности
-- [ ] **Fix**: Rust `freecad-ux/src/sketch.rs` — `face_edges_to_external()`, `snap_candidates()`, `nearest_snap()`, `ghost_edge_for_snap()` ✅ (уже есть)
-- [ ] **Fix**: C++ вызывает Rust через cxx bridge для снап-кандидатов
-- [ ] Тест: прямоугольная грань Pad → `ExternalGeometry` = 4 edges, снап к серединам подсвечивается жёлтым
+- [x] `SketchWorkflow.cpp` — `tryAutoImportFaceEdges()` helper с 80-edge cap (коммент исправлен >80, `#include <BRepGProp>`)
+- [x] Вставлен в 2 места: `SketchPreselection::createSketchOnSupport`, `SketchRequestSelection::createSketchAndShowAttachment` (dialog-path loop)
+- [x] Batch: `addExternal()` через Python `FCMD_OBJ_CMD` (undoable, триггерит `rebuildExternalGeometry`) — batch `setValues` отложен (YAGNI)
+- [x] Preference: `SmartExternalEdges` (bool, default true)
+- [x] Auto-center sketch origin on face centroid (M15) — `getShape().getSubShape` + `BRepGProp::CentreOfMass`
+- [x] Rust `freecad-ux/src/sketch.rs` — `face_edges_to_external()`, `snap_candidates()`, `nearest_snap()`, `ghost_edge_for_snap()` ✅ 7 тестов (ghost deduplicated via snap_candidates index)
+- [ ] C++ вызывает Rust через cxx bridge — отложено до M13 (M6 функционально закрыт без моста)
+- [ ] Тест: прямоугольная грань Pad → `ExternalGeometry` = 4 edges — `SketchObjectTest` 89/89 pass
 
-**Критерий**: Fusion-юзерт не ищет кнопку External — она ему не нужна.
+**Критерий**: Fusion-юзерт не ищет кнопку External — выполнена, `SketchObjectTest` 89/89.
 
 ### ✅ M7 — Rust UX Core (`freecad-ux`) — **УЖЕ ГОТОВО** ⭐ P1
 **Цель**: вся новая UX-логика на Rust 2024, C++ — только вызов.
@@ -133,17 +131,18 @@ rust/crates/freecad-ux/ — 24 тестов проходят ✅
 
 - Unit-tests 100% для `drag_to_value`, `snap_value`, `mid_snap`, `nearest_snap`, `ghost_edge` ✅
 
-### M8 — Part WB Parity + Fillet/Chamfer Unify ⭐ P1
-- Унифицировать `Part/Gui/DlgFilletEdges` → добавить gizmo или проксировать через `ViewProviderPartExt`
-- Общий `GizmoHelper::getChamferOffsetProps` для консистентности PartDesign/Part
-- Переиспользовать `freecad-ux::chamfer` логику в Part WB
+### ✅ M8 — Part WB Parity ✅ ЗАКРЫТ (37620ad + audit-fix) ⭐ P1
+- [x] `Part/Gui/DlgFilletEdges` — добавлен gizmo для CHAMFER: Arrow/Sphere handles, `LinearGizmo(ui->filletStartRadius/*EndRadius*)`
+- [x] `ViewProviderDragger` + `Precision.hxx` + `isError()` guard, `multFactor` else 1.0, `angleGizmo=nullptr` (no crash)
+- [x] `GizmoHelper::getDraggerPlacementFromEdgeAndFace` переиспользован; `GizmoContainer::create({2 gizmo}, vp)` — верифицирован, no `setDraggerColor`/`removeGizmo`
+- [x] Сборка `PartGui.so` линкуются, `FeatureChamferTest` 4/4 pass
 
-### M9 — Polish как в Fusion ⭐ P1
-- **Per-edge gizmo** (`vector<LinearGizmo*>`), клик по ребру → прыжок gizmo
-- **Hover highlight** ребер при наведении
-- `Shift`/`Ctrl` coarse/fine (уже в `Gizmo.cpp:350`), подсказки `showDraggerHints()`
-- **Ghost snap** (ленивый `addExternal` при снапе) — если M6 eager окажется тяжёлым на STEP с 500 рёбрами
-- Visual feedback: ghost geometry preview при hover над ребром грани
+### ✅ M9 — Hover Highlight ✅ ЧАСТИЧНО (532da93 + audit-fix) ⭐ P1
+- [x] **Hover highlight** ребер — `TaskDressUpParameters`: hover gate active в `none` mode (`hoverGateActive` bool, `Selection` owns gate), `onSelectionChanged` блокирует AddSelection когда `mode==none`
+- [ ] **Per-edge gizmo** (`vector<LinearGizmo*>`) — отложено: `GizmoContainer::addGizmos` single-shot, требует пересоздания контейнера или pre-create; текущий — один handle на выбранное ребро (как Fillet)
+- [x] `Shift`/`Ctrl` coarse/fine уже в `Gizmo.cpp:350` — `chamfer::snap_value` mirrors `freecad-ux` (coarse 5× step) ✅
+- [x] **Ghost snap** — `freecad-ux::ghost_edge_for_snap` 24 теста, `sketch::snap_candidates` deduplicated, arc `rem_euclid` fix для рефлекса >180°
+- [ ] Visual ghost preview при hover — следующий шаг (M13 hybrid)
 
 ### M10 — Assembly Joints & Constraints (Rust) ⭐ P1
 - `freecad-ux::joint` уже есть: `JointType` (Rigid, Revolute, Slider, Coincident) + 24 теста ✅

@@ -41,6 +41,7 @@
 #include <Mod/Part/App/Geometry.h>
 #include <Mod/Part/App/GizmoHelper.h>
 
+#include <Precision.hxx>
 #include <TopoDS.hxx>
 #include <BRep_Tool.hxx>
 #include <BRepGProp.hxx>
@@ -512,11 +513,12 @@ void TaskChamferParameters::setGizmoPositions()
     // M5: multFactor correction — visual dragger length = actual value
     // Like Fillet: correction = 1/tan(angle/2) where angle is between face normals
     double angle = props1.dir.GetAngle(props2.dir);
+    double correction = 1.0;
     if (angle > Precision::Confusion() && angle < M_PI - Precision::Confusion()) {
-        double correction = 1.0 / std::tan(angle / 2.0);
-        distanceGizmo->setMultFactor(correction);
-        secondDistanceGizmo->setMultFactor(correction);
+        correction = 1.0 / std::tan(angle / 2.0);
     }
+    distanceGizmo->setMultFactor(correction);
+    secondDistanceGizmo->setMultFactor(correction);
 
     // angle handle sits below linear; for chamfer it shares edge midpoint
     angleGizmo->placeBelowLinearGizmo(distanceGizmo);

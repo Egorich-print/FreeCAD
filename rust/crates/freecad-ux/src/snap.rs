@@ -28,31 +28,29 @@ pub fn snap_to_arc_middle(
     start_angle: f64,
     end_angle: f64,
 ) -> bool {
-    if radius < 1e-9 {
+    if !radius.is_finite() || radius < 1e-9 {
         return false;
     }
-    let mut sweep = end_angle - start_angle;
-    // normalize sweep to (-pi, pi] then take abs
-    while sweep > std::f64::consts::PI {
-        sweep -= 2.0 * std::f64::consts::PI;
-    }
-    while sweep <= -std::f64::consts::PI {
-        sweep += 2.0 * std::f64::consts::PI;
-    }
-    let sweep_abs = sweep.abs();
-    if sweep_abs < 1e-9 {
+    if !start_angle.is_finite() || !end_angle.is_finite() {
         return false;
     }
+    // Preserve true sweep in [0, 2π) — supports reflex arcs >180° (270° → 4.71, mid 135°)
+    let mut sweep = (end_angle - start_angle).rem_euclid(2.0 * std::f64::consts::PI);
+    // rem_euclid maps 0 sweep to 0; treat ~2π as full circle → no unique mid
+    if sweep < 1e-9 || (2.0 * std::f64::consts::PI - sweep) < 1e-9 {
+        return false;
+    }
+    let sweep_abs = sweep;
     let mid_angle = start_angle + sweep * 0.5;
     let mid = [
         center[0] + radius * mid_angle.cos(),
         center[1] + radius * mid_angle.sin(),
     ];
-    // angular distance from point to mid
+    // angular distance from point to mid, wrapped to [0, π]
     let pt_angle = (point[1] - center[1]).atan2(point[0] - center[0]);
-    let mut diff = (pt_angle - mid_angle).abs();
-    while diff > std::f64::consts::PI {
-        diff = (2.0 * std::f64::consts::PI - diff).abs();
+    let mut diff = (pt_angle - mid_angle).rem_euclid(2.0 * std::f64::consts::PI);
+    if diff > std::f64::consts::PI {
+        diff = 2.0 * std::f64::consts::PI - diff;
     }
     if diff < sweep_abs * 0.10 {
         point[0] = mid[0];

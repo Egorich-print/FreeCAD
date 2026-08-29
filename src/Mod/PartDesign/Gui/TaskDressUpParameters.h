@@ -119,8 +119,8 @@ protected:
     selectionModes selectionMode;
     int transactionID;
 
-    // M9: Hover gate for edge/face pre-selection highlight
-    std::unique_ptr<Gui::SelectionFilterGate> hoverGate;
+    // M9: Hover gate for edge/face pre-selection highlight (Selection owns gate; we track active state)
+    bool hoverGateActive = false;
 
     static QString stopSelectionLabel();
     static QString startSelectionLabel();
