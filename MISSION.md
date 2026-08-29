@@ -280,14 +280,13 @@ rust/crates/freecad-ux/ — 24 тестов проходят ✅
 | `9deed36` | `yolo-m5-9deed36` | **M5 completion** — Chamfer gizmo: distinct styles, multFactor, Part WB |
 | `37620ad` | `yolo-m8-37620ad` | **M8** — Part WB Chamfer gizmo parity |
 | `532da93` | `yolo-m9-532da93` | **M9** — Hover highlight for Chamfer/Fillet edges |
+| `327949e` | `yolo-m9-peredge-327949e` | **M9 per-edge** — gizmo follows hovered Edge (SetPreselect → setGizmoForEdge) |
+| `c490851` | `yolo-m10m11-c490851` | **M10-M11 scaffolding** — JointGizmoHelper + MeasureOverlayHelper (mirrors freecad-ux) |
 
-**Следующие шаги автономно (YOLO без пауз):**
-- **M9 remaining** — Per-edge gizmo, Shift/Ctrl coarse/fine, ghost snap
-- **M10** — Assembly Joints C++ integration + gizmos (axis/arrow handles, limits UI, motion preview)
-- **M11** — Measure tools C++ integration (distance/angle/area overlay)
-- **M13** — Hybrid snap (eager + ghost), Assembly motion preview
-- **M14** — CI pipeline, full test suite, screencasts
-- **M15** — Release `fusion-parity-m15`
+**Следующие шаги автономно (YOLO, следующий спринт):**
+- **M13 hybrid snap** tuning (freecad-ux thresholds уже 5%/10% + 80 cap) + C++ `Sketcher` ghost overlay
+- **M14** — CI `pixi run build-release` + `cargo fmt` + `ctest 95/95` green, screencasts
+- **M15** — `fusion-parity-m15` tag + binaries
 
 ---
 
