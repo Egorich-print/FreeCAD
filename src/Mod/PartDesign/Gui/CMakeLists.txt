@@ -212,6 +212,8 @@ SET(PartDesignGuiModule_SRCS
     PreCompiled.h
     SketchWorkflow.cpp
     SketchWorkflow.h
+    MeasureOverlayHelper.h
+    MeasureOverlayHelper.cpp
     StyleParameters.h
     Utils.cpp
     Utils.h

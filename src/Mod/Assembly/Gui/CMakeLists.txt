@@ -66,6 +66,8 @@ SET(AssemblyGui_SRCS
     ${AssemblyGui_UIC_HDRS}
     ${AssemblyGui_SRCS_Module}
     ${Python_SRCS}
+    JointGizmoHelper.h
+    JointGizmoHelper.cpp
 )
 
 SET(AssemblyGuiIcon_SVG
