@@ -97,22 +97,27 @@ inline void tryAutoImportFaceEdges(
     if (!isSmartExternalEnabled() || !sketchFeat || !supportObj || subName.rfind("Face", 0) != 0) {
         return;
     }
-    // Guard: large STEP faces with >80 edges would create heavy ExternalGeo; cap
+    // M13 hybrid: ≤20 eager, 21-80 eager-capped, >80 ghost (skip eager, freecad-ux::hybrid_snap_policy)
     try {
         if (auto* partFeat = dynamic_cast<Part::Feature*>(supportObj)) {
             const Part::TopoShape shape = partFeat->Shape.getValue();
             Part::TopoShape face = shape.getSubShape(subName.c_str());
             if (!face.isNull()) {
-                // count edges via TopExp
                 int edgeCount = 0;
                 for (TopExp_Explorer exp(face.getShape(), TopAbs_EDGE); exp.More(); exp.Next()) {
                     if (++edgeCount > 80) {
                         Base::Console().log(
-                            "SmartExternal: face %s has >80 edges, skipping auto-import\n",
+                            "SmartExternal: face %s has >80 edges, hybrid Ghost — skipping eager import (use ghost snap)\n",
                             subName.c_str()
                         );
                         return;
                     }
+                }
+                if (edgeCount > 20) {
+                    Base::Console().log(
+                        "SmartExternal: face %s has %d edges (>20), eager-capped import\n",
+                        subName.c_str(), edgeCount
+                    );
                 }
             }
         }

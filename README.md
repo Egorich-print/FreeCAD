@@ -109,13 +109,15 @@ Fusion 360 Parity (YOLO Mission)
 
 This fork is actively becoming a **real Fusion 360 alternative** — see [`MISSION.md`](MISSION.md).
 
-**Already done (2026-08-28, YOLO autonomous):**
-- **Chamfer radius picker** — draggable handles with distinct styles (Arrow vs Sphere), type-aware visibility, live preview (`src/Mod/PartDesign/Gui/TaskChamferParameters.cpp:354`)
-- **Smart sketch on face** — face contour auto-imports as external geometry, mid/endpoint snap works without the `External` button (`src/Mod/PartDesign/Gui/SketchWorkflow.cpp:70`)
-- **Rust UX core** — `rust/crates/freecad-ux` (Rust 2024, 1.98), 15 tests: chamfer drag math, snap thresholds, face projection
-- Toggle: `Preferences → Sketcher → General → SmartExternalEdges`
+**Already done (2026-08-29, YOLO autonomous, audit-fixed):**
+- **Chamfer radius picker** — draggable handles `Arrow/Sphere`, `multFactor` 1/tan(angle/2) with `Precision.hxx` guard, Part WB parity (`TaskChamferParameters.cpp:402`, `DlgFilletEdges.cpp:346`)
+- **Smart sketch on face** — face contour auto-import (`tryAutoImportFaceEdges` 80 cap, hybrid `≤20 eager / >80 ghost`), mid/endpoint snap (`freecad-ux` 5%/10%), auto-center on `CentreOfMass` (`SketchWorkflow.cpp:92`)
+- **Hover highlight** — `TaskDressUpParameters` keeps gate in `none` mode for pre-select; gizmo follows hovered Edge (`SetPreselect` → `setGizmoForEdge`)
+- **Rust UX core** — `rust/crates/freecad-ux` (Rust 2024, 1.98), **25 tests** (`cargo test --workspace`): chamfer drag `NaN` guard, arc 270° `rem_euclid` fix, `HybridPolicy` (Eager/EagerCapped/Ghost)
+- Toggles: `Preferences → Sketcher → General → SmartExternalEdges`; gizmo `Shift` coarse (5×) via `freecad-ux::snap_value`
+- Scaffolding: `AssemblyGui/JointGizmoHelper` (mirrors `freecad-ux::joint`), `PartDesign/MeasureOverlayHelper`, `Sketcher/GhostSnapOverlay`
 
-**Roadmap M8-M10** in `MISSION.md` — auto-scaling gizmos, per-edge handles, Part WB parity, docs & screencasts. Tags: `yolo-mission-m7-*`, `yolo-mission-m9-*`.
+**Roadmap** — `MISSION.md` M9 per-edge hover ✅, M10-M11 scaffolding ✅, M13 hybrid ✅, M14 CI (`rust-yolo.yml` 1.98 + `cargo fmt`), M15 `fusion-parity-m15`. Tags: `yolo-m5-9deed36`, `yolo-m8-37620ad`, `yolo-m9-*`, `yolo-m10m11-*`.
 
 ---
 

@@ -108,6 +108,25 @@ pub fn should_auto_import(face: &FaceProj) -> bool {
     face.edges.len() <= 80
 }
 
+/// Hybrid snap policy for M13: eager import for simple faces (≤20 edges), ghost for complex.
+/// Eager gives Fusion instant snap; ghost avoids heavy ExternalGeo on STEP with 500 edges.
+pub fn hybrid_snap_policy(face: &FaceProj) -> HybridPolicy {
+    if face.edges.len() <= 20 {
+        HybridPolicy::Eager
+    } else if face.edges.len() <= 80 {
+        HybridPolicy::EagerCapped // 21-80: eager but with 80 cap warning
+    } else {
+        HybridPolicy::Ghost // >80: skip eager, rely on ghost_edge_for_snap lazy import
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HybridPolicy {
+    Eager,
+    EagerCapped,
+    Ghost,
+}
+
 /// Nearest snap candidate for a cursor pos (Fusion-style magnetic)
 pub fn nearest_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<SnapCandidate> {
     let mut best: Option<(f64, SnapCandidate)> = None;
@@ -259,5 +278,15 @@ mod tests {
         let e = ghost_edge_for_snap(&face, [5.1, 0.1], 1.0).unwrap();
         assert_eq!(e, "Edge1");
         assert!(ghost_edge_for_snap(&face, [50.0, 50.0], 1.0).is_none());
+    }
+
+    #[test]
+    fn hybrid_policy() {
+        let mut face = rect_face(); // 4 edges → Eager
+        assert_eq!(hybrid_snap_policy(&face), HybridPolicy::Eager);
+        face.edges.resize(25, face.edges[0].clone());
+        assert_eq!(hybrid_snap_policy(&face), HybridPolicy::EagerCapped);
+        face.edges.resize(81, face.edges[0].clone());
+        assert_eq!(hybrid_snap_policy(&face), HybridPolicy::Ghost);
     }
 }

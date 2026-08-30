@@ -161,6 +161,8 @@ SET(SketcherGui_SRCS
     SketcherRegularPolygonDialog.cpp
     SnapManager.cpp
     SnapManager.h
+    GhostSnapOverlay.h
+    GhostSnapOverlay.cpp
     StyleParameters.h
     TaskDlgEditSketch.cpp
     TaskDlgEditSketch.h
