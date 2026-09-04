@@ -8,7 +8,7 @@
 **Local**: `~/ai-workstation/Projects/FreeCAD` (симлинк из `projects/`)  
 **Старт**: `yolo-mission-start-20260828-b4f5679` (бэкап `/tmp/freecad-yolo-backup-20260828.tgz`)  
 **Агент**: Muse Spark (OpenCode)  
-**Current HEAD**: `7a51c93` (M9 hover highlight, audit fixes pending push)
+**Current HEAD**: `2965485` (audit-refactor: Rust 29 tests, C++ tip-switch/measure parity)
 
 ---
 
@@ -118,7 +118,7 @@ rust/
 **Цель**: вся новая UX-логика на Rust 2024, C++ — только вызов.
 
 ```
-rust/crates/freecad-ux/ — 24 тестов проходят ✅
+rust/crates/freecad-ux/ — 29 тестов проходят ✅ (chamfer 7, sketch 9, snap 5, measure 5, joint 5)
   Cargo.toml — edition 2024, depends: freecad-core, glam
   src/
     lib.rs          — re-exports
@@ -282,11 +282,17 @@ rust/crates/freecad-ux/ — 24 тестов проходят ✅
 | `532da93` | `yolo-m9-532da93` | **M9** — Hover highlight for Chamfer/Fillet edges |
 | `327949e` | `yolo-m9-peredge-327949e` | **M9 per-edge** — gizmo follows hovered Edge (SetPreselect → setGizmoForEdge) |
 | `c490851` | `yolo-m10m11-c490851` | **M10-M11 scaffolding** — JointGizmoHelper + MeasureOverlayHelper (mirrors freecad-ux) |
+| `d0824b0` | `yolo-m13-d0824b0` | **M13-M14** — HybridPolicy + Ghost overlay + CI verify + README |
+| `2965485` | `yolo-refactor-audit-2965485` | **Audit-refactor** — Rust 29 tests (guards/exports/consts), C++ tip-switch/pre-check/measure parity |
 
-**Следующие шаги автономно (YOLO, следующий спринт):**
-- **M13 hybrid snap** tuning (freecad-ux thresholds уже 5%/10% + 80 cap) + C++ `Sketcher` ghost overlay
-- **M14** — CI `pixi run build-release` + `cargo fmt` + `ctest 95/95` green, screencasts
+**Следующие шаги (YOLO-миссия продолжается):**
+- **M10 full** — joint limits UI + motion preview (clamp_limit уже в Rust+C++, нужен Gizmo wiring к ViewProviderAssembly drag)
+- **M11 full** — Measure overlay Coin-аннотации (математика готова, нужен ViewProvider)
+- **M13 full** — ghost lazy `addExternal(Edge)` wiring в SnapManager (freecad-ux готов, C++ стаб)
+- **M14** — стабилизировать `ctest` discovery (MeshPart/Measure timeout, PRE_TEST), сделать tag-check блокирующим
 - **M15** — `fusion-parity-m15` tag + binaries
+
+Примечание аудита 2026-09-04: `freecad-ux` фактически **29 тестов** (не 24); `freecad-core history` фактически **2 теста** (не 41); тег `yolo-m15-e691d83` указывает на `22c9052` (суффикс исторический); `build/debug` отсутствует (дефолтные pixi tasks — debug); stash `wip` с маркерами `b2da06b` не трогать (`pop` запрещён).
 
 ---
 
