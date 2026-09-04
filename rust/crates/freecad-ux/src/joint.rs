@@ -54,9 +54,42 @@ impl Joint {
     }
 
     /// Check if coincident within tol
+    /// Returns false for non-finite or negative tolerance (indistinguishable from "far").
     pub fn is_coincident(&self, tol: f64) -> bool {
+        if !tol.is_finite() || tol < 0.0 {
+            return false;
+        }
         let t = self.translation();
+        if !t.iter().all(|v| v.is_finite()) {
+            return false;
+        }
         (t[0] * t[0] + t[1] * t[1] + t[2] * t[2]).sqrt() <= tol
+    }
+
+    /// Clamp a joint translation/rotation drag value into enabled limits.
+    /// Mirrors AssemblyObject.cpp limit logic (auto-swap inverted min/max).
+    pub fn clamp_limit(
+        value: f64,
+        min: f64,
+        max: f64,
+        enabled_min: bool,
+        enabled_max: bool,
+    ) -> f64 {
+        if !value.is_finite() {
+            return 0.0;
+        }
+        let (mut lo, mut hi) = (min, max);
+        if lo.is_finite() && hi.is_finite() && lo > hi {
+            std::mem::swap(&mut lo, &mut hi);
+        }
+        let mut v = value;
+        if enabled_min && lo.is_finite() && v < lo {
+            v = lo;
+        }
+        if enabled_max && hi.is_finite() && v > hi {
+            v = hi;
+        }
+        v
     }
 }
 
@@ -102,5 +135,16 @@ mod tests {
         };
         assert!(j.is_coincident(0.001));
         assert!(!j.is_coincident(0.0001));
+        assert!(!j.is_coincident(f64::NAN));
+        assert!(!j.is_coincident(-1.0));
+    }
+
+    #[test]
+    fn clamp_limit_swaps_and_guards() {
+        assert_eq!(Joint::clamp_limit(5.0, 10.0, 0.0, true, true), 5.0);
+        assert_eq!(Joint::clamp_limit(-5.0, 0.0, 10.0, true, true), 0.0);
+        assert_eq!(Joint::clamp_limit(15.0, 0.0, 10.0, false, true), 10.0);
+        assert_eq!(Joint::clamp_limit(15.0, 0.0, 10.0, false, false), 15.0);
+        assert_eq!(Joint::clamp_limit(f64::NAN, 0.0, 10.0, true, true), 0.0);
     }
 }

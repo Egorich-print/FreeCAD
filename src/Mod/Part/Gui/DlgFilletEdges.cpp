@@ -70,6 +70,7 @@
 #include <Gui/ViewProviderDragger.h>
 #include <Gui/Inventor/Draggers/SoRotationDragger.h>
 #include <Precision.hxx>
+#include <cmath>
 
 #include "DlgFilletEdges.h"
 #include "ui_DlgFilletEdges.h"
@@ -417,6 +418,9 @@ void DlgFilletEdges::setGizmoPositions()
     }
 
     if (edges.empty()) {
+        // Reset scale so a later edge does not inherit a stale correction
+        d->distanceGizmo->setMultFactor(1.0);
+        d->secondDistanceGizmo->setMultFactor(1.0);
         d->gizmoContainer->visible = false;
         return;
     }

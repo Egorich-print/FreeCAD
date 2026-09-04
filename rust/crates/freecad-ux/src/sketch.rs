@@ -35,6 +35,13 @@ pub enum SnapKind {
     Center,
 }
 
+/// Caps mirrored with C++ `SketchWorkflow.cpp::tryAutoImportFaceEdges`.
+pub const AUTO_IMPORT_CAP: usize = 80;
+/// Eager import threshold for hybrid policy (M13).
+pub const HYBRID_EAGER_CAP: usize = 20;
+/// Absolute epsilon for snap candidate identity (sketch units).
+pub const SNAP_EPS: f64 = 1e-6;
+
 /// A face's projected edges ready for external import
 #[derive(Debug, Clone)]
 pub struct FaceProj {
@@ -56,14 +63,22 @@ impl FaceProj {
                 kind: SnapKind::Endpoint,
             });
             let mid = if let Some(arc) = e.arc {
-                // arc middle via bisector — preserve sweep via rem_euclid for reflex/crossing-zero arcs
+                // arc middle via bisector — preserve sweep via rem_euclid for reflex/crossing-zero arcs.
+                // Full-circle arcs have no unique mid: fall back to start point (Center candidate still covers it).
                 let sweep =
                     (arc.end_angle - arc.start_angle).rem_euclid(2.0 * std::f64::consts::PI);
-                let mid_ang = arc.start_angle + sweep * 0.5;
-                [
-                    arc.center[0] + arc.radius * mid_ang.cos(),
-                    arc.center[1] + arc.radius * mid_ang.sin(),
-                ]
+                if sweep < 1e-9
+                    || (2.0 * std::f64::consts::PI - sweep) < 1e-9
+                    || !arc.radius.is_finite()
+                {
+                    e.start
+                } else {
+                    let mid_ang = arc.start_angle + sweep * 0.5;
+                    [
+                        arc.center[0] + arc.radius * mid_ang.cos(),
+                        arc.center[1] + arc.radius * mid_ang.sin(),
+                    ]
+                }
             } else {
                 [(e.start[0] + e.end[0]) * 0.5, (e.start[1] + e.end[1]) * 0.5]
             };
@@ -102,18 +117,18 @@ pub fn face_edges_to_external(face: &FaceProj, max_edges: usize) -> Vec<String> 
         .collect()
 }
 
-/// Smart external policy — mirrors C++ tryAutoImportFaceEdges cap (80 edges)
-/// Returns false for >80 edges to avoid STEP blowups (separate from 200 hard cap).
+/// Smart external policy — mirrors C++ tryAutoImportFaceEdges cap ([`AUTO_IMPORT_CAP`] edges)
+/// Returns false for over-cap faces to avoid STEP blowups.
 pub fn should_auto_import(face: &FaceProj) -> bool {
-    face.edges.len() <= 80
+    face.edges.len() <= AUTO_IMPORT_CAP
 }
 
-/// Hybrid snap policy for M13: eager import for simple faces (≤20 edges), ghost for complex.
+/// Hybrid snap policy for M13: eager import for simple faces (≤[`HYBRID_EAGER_CAP`] edges), ghost for complex.
 /// Eager gives Fusion instant snap; ghost avoids heavy ExternalGeo on STEP with 500 edges.
 pub fn hybrid_snap_policy(face: &FaceProj) -> HybridPolicy {
-    if face.edges.len() <= 20 {
+    if face.edges.len() <= HYBRID_EAGER_CAP {
         HybridPolicy::Eager
-    } else if face.edges.len() <= 80 {
+    } else if face.edges.len() <= AUTO_IMPORT_CAP {
         HybridPolicy::EagerCapped // 21-80: eager but with 80 cap warning
     } else {
         HybridPolicy::Ghost // >80: skip eager, rely on ghost_edge_for_snap lazy import
@@ -128,7 +143,11 @@ pub enum HybridPolicy {
 }
 
 /// Nearest snap candidate for a cursor pos (Fusion-style magnetic)
+/// Returns `None` for non-finite cursor or negative/non-finite `max_dist`.
 pub fn nearest_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<SnapCandidate> {
+    if !cursor.iter().all(|v| v.is_finite()) || !max_dist.is_finite() || max_dist < 0.0 {
+        return None;
+    }
     let mut best: Option<(f64, SnapCandidate)> = None;
     for c in face.snap_candidates() {
         let d = ((c.pos[0] - cursor[0]).powi(2) + (c.pos[1] - cursor[1]).powi(2)).sqrt();
@@ -146,6 +165,7 @@ pub fn nearest_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<
 /// Ghost snap — find edge name to lazily import when cursor snaps to face
 /// without prior external. Returns edge name if candidate belongs to that edge.
 /// Reuses snap_candidates() mapping to avoid duplicating midpoint math.
+/// Note: shared vertices (rect corners) resolve to the first owning edge.
 pub fn ghost_edge_for_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> Option<String> {
     let snap = nearest_snap(face, cursor, max_dist)?;
     // Reuse canonical candidates with edge index to avoid trig duplication.
@@ -157,8 +177,8 @@ pub fn ghost_edge_for_snap(face: &FaceProj, cursor: [f64; 2], max_dist: f64) -> 
         for k in 0..per_edge {
             let c = candidates[idx + k];
             if c.kind == snap.kind
-                && (c.pos[0] - snap.pos[0]).abs() < 1e-6
-                && (c.pos[1] - snap.pos[1]).abs() < 1e-6
+                && (c.pos[0] - snap.pos[0]).abs() < SNAP_EPS
+                && (c.pos[1] - snap.pos[1]).abs() < SNAP_EPS
             {
                 return Some(e.name.clone());
             }

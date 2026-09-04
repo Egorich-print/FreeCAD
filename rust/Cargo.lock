@@ -649,7 +649,6 @@ name = "freecad-ux"
 version = "0.1.0"
 dependencies = [
  "freecad-core",
- "glam",
 ]
 
 [[package]]

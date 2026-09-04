@@ -27,9 +27,13 @@ struct JointGizmoPlacement
 };
 
 // Pure math — mirrors freecad-ux/src/joint.rs:translation/axis_angle/is_coincident
+// Note: freecad-ux has 4 types (Rigid/Revolute/Slider/Coincident); the full
+// Assembly solver has 13 (AssemblyUtils.h) — this helper covers the common subset.
 Base::Vector3d jointTranslation(const Base::Vector3d& a, const Base::Vector3d& b);
 double jointAxisAngle(const Base::Vector3d& axisA, const Base::Vector3d& axisB);
 bool jointIsCoincident(const Base::Vector3d& a, const Base::Vector3d& b, double tol);
+// Mirrors freecad-ux::Joint::clamp_limit (AssemblyObject.cpp limit logic, auto-swap min/max).
+double jointClampLimit(double value, double min, double max, bool enabledMin, bool enabledMax);
 
 // Gizmo wiring (stub — creates LinearGizmo for translation, RotationGizmo for revolute)
 struct JointGizmos

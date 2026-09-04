@@ -42,6 +42,7 @@
 #include <Mod/Part/App/GizmoHelper.h>
 
 #include <Precision.hxx>
+#include <cmath>
 #include <TopoDS.hxx>
 #include <BRep_Tool.hxx>
 #include <BRepGProp.hxx>
@@ -490,6 +491,9 @@ void TaskChamferParameters::setGizmoPositions()
     auto shapes = chamfer->getContinuousEdges(baseShape);
 
     if (shapes.empty()) {
+        // Reset scale so a later edge does not inherit a stale correction
+        distanceGizmo->setMultFactor(1.0);
+        secondDistanceGizmo->setMultFactor(1.0);
         gizmoContainer->visible = false;
         return;
     }
@@ -555,7 +559,7 @@ void TaskChamferParameters::setGizmoPositions()
 
 void TaskChamferParameters::setGizmoForEdge(const QString& subName)
 {
-    if (!gizmoContainer) {
+    if (!gizmoContainer || !distanceGizmo || !secondDistanceGizmo || !angleGizmo) {
         return;
     }
     auto chamfer = getObject<PartDesign::Chamfer>();

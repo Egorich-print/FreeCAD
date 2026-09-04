@@ -4,8 +4,14 @@
 /// Returns true if point should snap to line middle.
 /// Threshold = 5% of length (SnapManager.cpp:343)
 pub fn snap_to_line_middle(point: &mut [f64; 2], start: [f64; 2], end: [f64; 2]) -> bool {
+    if !point.iter().all(|v| v.is_finite())
+        || !start.iter().all(|v| v.is_finite())
+        || !end.iter().all(|v| v.is_finite())
+    {
+        return false;
+    }
     let len = ((end[0] - start[0]).powi(2) + (end[1] - start[1]).powi(2)).sqrt();
-    if len < 1e-9 {
+    if !len.is_finite() || len < 1e-9 {
         return false;
     }
     let mid = [(start[0] + end[0]) * 0.5, (start[1] + end[1]) * 0.5];
@@ -34,8 +40,11 @@ pub fn snap_to_arc_middle(
     if !start_angle.is_finite() || !end_angle.is_finite() {
         return false;
     }
+    if !point.iter().all(|v| v.is_finite()) || !center.iter().all(|v| v.is_finite()) {
+        return false;
+    }
     // Preserve true sweep in [0, 2π) — supports reflex arcs >180° (270° → 4.71, mid 135°)
-    let mut sweep = (end_angle - start_angle).rem_euclid(2.0 * std::f64::consts::PI);
+    let sweep = (end_angle - start_angle).rem_euclid(2.0 * std::f64::consts::PI);
     // rem_euclid maps 0 sweep to 0; treat ~2π as full circle → no unique mid
     if sweep < 1e-9 || (2.0 * std::f64::consts::PI - sweep) < 1e-9 {
         return false;
@@ -96,5 +105,33 @@ mod tests {
         let snapped =
             snap_to_arc_middle(&mut p, [0.0, 0.0], 10.0, 0.0, std::f64::consts::FRAC_PI_2);
         assert!(!snapped);
+    }
+
+    #[test]
+    fn arc_reflex_and_guards() {
+        // 270° sweep mid at 135°
+        let mut p = [-7.0, 7.2];
+        let snapped = snap_to_arc_middle(
+            &mut p,
+            [0.0, 0.0],
+            10.0,
+            0.0,
+            3.0 * std::f64::consts::FRAC_PI_2,
+        );
+        assert!(snapped);
+        // full circle has no unique mid
+        let mut q = [10.0, 0.1];
+        assert!(!snap_to_arc_middle(
+            &mut q,
+            [0.0, 0.0],
+            10.0,
+            0.0,
+            2.0 * std::f64::consts::PI
+        ));
+        // NaN guards
+        let mut n = [f64::NAN, 0.0];
+        assert!(!snap_to_line_middle(&mut n, [0.0, 0.0], [10.0, 0.0]));
+        let mut m = [5.1, 0.0];
+        assert!(!snap_to_line_middle(&mut m, [f64::NAN, 0.0], [10.0, 0.0]));
     }
 }

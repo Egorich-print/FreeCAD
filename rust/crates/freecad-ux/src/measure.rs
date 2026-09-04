@@ -32,7 +32,11 @@ pub fn bbox_diagonal(min: Point3, max: Point3) -> f64 {
 }
 
 /// Closest distance point → segment ab
+/// Returns NaN for non-finite inputs (does not mask bad geometry).
 pub fn point_to_segment_dist(p: Point3, a: Point3, b: Point3) -> f64 {
+    if ![p, a, b].iter().all(|pt| pt.iter().all(|v| v.is_finite())) {
+        return f64::NAN;
+    }
     let ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
     let ap = [p[0] - a[0], p[1] - a[1], p[2] - a[2]];
     let ab_len2 = ab[0] * ab[0] + ab[1] * ab[1] + ab[2] * ab[2];
@@ -40,6 +44,9 @@ pub fn point_to_segment_dist(p: Point3, a: Point3, b: Point3) -> f64 {
         return distance(p, a);
     }
     let t = (ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / ab_len2;
+    if !t.is_finite() {
+        return f64::NAN;
+    }
     let t = t.clamp(0.0, 1.0);
     let proj = [a[0] + ab[0] * t, a[1] + ab[1] * t, a[2] + ab[2] * t];
     distance(p, proj)

@@ -50,6 +50,7 @@
 #include <Mod/Part/App/AttachExtension.h>
 #include <Mod/Part/App/Attacher.h>
 #include <Mod/Part/App/Part2DObject.h>
+#include <Mod/Part/App/PartFeature.h>
 #include <Mod/Part/App/TopoShape.h>
 #include <Mod/Sketcher/App/SketchObject.h>
 #include <Mod/Sketcher/Gui/ViewProviderSketch.h>
@@ -95,6 +96,22 @@ inline void tryAutoImportFaceEdges(
     const std::string& subName)
 {
     if (!isSmartExternalEnabled() || !sketchFeat || !supportObj || subName.rfind("Face", 0) != 0) {
+        return;
+    }
+    // Pre-check DAG/Body/Part compatibility before queuing a Python command —
+    // avoids a doomed addExternal that only logs inside SketchObjectExternal.
+    try {
+        if (auto* sketch = dynamic_cast<Sketcher::SketchObject*>(sketchFeat)) {
+            if (!sketch->isExternalAllowed(supportObj->getDocument(), supportObj)) {
+                Base::Console().log(
+                    "SmartExternal: face %s not allowed as external (DAG/Body/Part), skipping\n",
+                    subName.c_str()
+                );
+                return;
+            }
+        }
+    }
+    catch (...) {
         return;
     }
     // M13 hybrid: ≤20 eager, 21-80 eager-capped, >80 ghost (skip eager, freecad-ux::hybrid_snap_policy)
@@ -228,6 +245,12 @@ public:
         return faceSelection.getObject();
     }
 
+    std::string getSubName() const
+    {
+        auto subs = faceSelection.getSubNames();
+        return subs.empty() ? std::string() : subs[0];
+    }
+
 private:
     void setThroughModeOfBody(PartDesign::Body* activeBody)
     {
@@ -312,6 +335,10 @@ public:
 
             selectedObject = validator.getObject();
             supportString = validator.getSupport();
+            // Validated (Tip-normalized) object+sub — single source of truth for
+            // createSketchOnSupport (fixes Body-tip external/centroid mismatch).
+            supportObject = selectedObject;
+            supportSub = validator.getSubName();
         }
         else if (planeFilter.match()) {
             SupportPlaneValidator validator(planeFilter.Result[0][0]);
@@ -353,35 +380,34 @@ public:
         }
         // M6: smart binding — if support is a Face, import its edges as external geometry
         // Fusion-like: contour + midpoints immediately snappable without External button
-        if (faceFilter.match()) {
+        // Uses validated supportObject/supportSub from createSupport (Tip-normalized).
+        if (faceFilter.match() && supportObject && !supportSub.empty()) {
             try {
-                Gui::SelectionObject so = faceFilter.Result[0][0];
-                App::DocumentObject* supObj = so.getObject();
-                auto subs = so.getSubNames();
-                if (!subs.empty()) {
-                    // queue addExternal via python; Attacher already set above
-                    tryAutoImportFaceEdges(Feat, supObj, subs[0]);
-                }
+                App::DocumentObject* supObj = supportObject;
+                // queue addExternal via python; Attacher already set above
+                tryAutoImportFaceEdges(Feat, supObj, supportSub);
                 // M15: Auto-center sketch origin on face's geometric centroid
+                // Transformed shape (ResolveLink, no Transform yet — offset is in
+                // attachment frame; full global placement handled by Attacher).
                 try {
-                    if (auto* partFeat = dynamic_cast<Part::Feature*>(supObj)) {
-                        Part::TopoShape faceShape = partFeat->Shape.getShape().getSubShape(subs[0].c_str());
-                        if (!faceShape.isNull()) {
-                            TopoDS_Face face = TopoDS::Face(faceShape.getShape());
-                            Base::Vector3d centroid = getFaceCentroid(face);
-                            FCMD_OBJ_CMD(
-                                Feat,
-                                "AttachmentOffset.Base.x = " << centroid.x
-                            );
-                            FCMD_OBJ_CMD(
-                                Feat,
-                                "AttachmentOffset.Base.y = " << centroid.y
-                            );
-                            FCMD_OBJ_CMD(
-                                Feat,
-                                "AttachmentOffset.Base.z = " << centroid.z
-                            );
-                        }
+                    Part::TopoShape baseShape =
+                        Part::Feature::getTopoShape(supObj, Part::ShapeOption::ResolveLink);
+                    Part::TopoShape faceShape = baseShape.getSubShape(supportSub.c_str());
+                    if (!faceShape.isNull()) {
+                        TopoDS_Face face = TopoDS::Face(faceShape.getShape());
+                        Base::Vector3d centroid = getFaceCentroid(face);
+                        FCMD_OBJ_CMD(
+                            Feat,
+                            "AttachmentOffset.Base.x = " << centroid.x
+                        );
+                        FCMD_OBJ_CMD(
+                            Feat,
+                            "AttachmentOffset.Base.y = " << centroid.y
+                        );
+                        FCMD_OBJ_CMD(
+                            Feat,
+                            "AttachmentOffset.Base.z = " << centroid.z
+                        );
                     }
                 }
                 catch (...) {
@@ -489,6 +515,9 @@ private:
     Gui::SelectionFilter planeFilter;
     Gui::SelectionFilter sketchFilter;
     std::string supportString;
+    // Validated (Tip-normalized) face support for createSketchOnSupport.
+    App::DocumentObject* supportObject = nullptr;
+    std::string supportSub;
 };
 
 class PlaneFinder

@@ -40,6 +40,9 @@
 #include <Mod/Part/App/Tools.h>
 #include <Mod/Part/App/GizmoHelper.h>
 
+#include <Precision.hxx>
+#include <cmath>
+
 #include "ui_TaskFilletParameters.h"
 #include "TaskFilletParameters.h"
 
@@ -237,6 +240,9 @@ void TaskFilletParameters::setGizmoPositions()
     std::vector<Part::TopoShape> shapes = fillet->getContinuousEdges(baseShape);
 
     if (shapes.size() == 0) {
+        // Reset scale so a later edge does not inherit a stale correction
+        radiusGizmo->setMultFactor(1.0);
+        radiusGizmo2->setMultFactor(1.0);
         gizmoContainer->visible = false;
         return;
     }
@@ -255,7 +261,10 @@ void TaskFilletParameters::setGizmoPositions()
     // The dragger length won't be equal to the radius if the two faces
     // are not orthogonal so this correction is needed
     double angle = props1.dir.GetAngle(props2.dir);
-    double correction = 1 / std::tan(angle / 2);
+    double correction = 1.0;
+    if (angle > Precision::Confusion() && angle < M_PI - Precision::Confusion()) {
+        correction = 1.0 / std::tan(angle / 2.0);
+    }
 
     radiusGizmo->setMultFactor(correction);
     radiusGizmo2->setMultFactor(correction);

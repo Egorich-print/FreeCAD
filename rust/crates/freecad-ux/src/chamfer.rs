@@ -83,11 +83,16 @@ pub fn drag_to_value(initial: f64, drag_length: f64, min: f64, max: f64) -> f64 
 }
 
 /// Snap helper: coarse snap when Shift held, fine when Ctrl
+/// Returns `value` unchanged for non-finite inputs or non-positive step.
+#[must_use]
 pub fn snap_value(value: f64, step: f64, coarse: bool) -> f64 {
-    if step <= 0.0 {
+    if !value.is_finite() || !step.is_finite() || step <= 0.0 {
         return value;
     }
     let s = if coarse { step * 5.0 } else { step };
+    if !s.is_finite() || s <= 0.0 {
+        return value;
+    }
     (value / s).round() * s
 }
 
@@ -123,6 +128,21 @@ mod tests {
     fn snap_coarse_fine() {
         assert!((snap_value(1.23, 0.1, false) - 1.2).abs() < 1e-9);
         assert!((snap_value(1.23, 0.1, true) - 1.0).abs() < 1e-9); // coarse 0.5 step
+    }
+
+    #[test]
+    fn snap_value_nan_step_guards() {
+        assert_eq!(snap_value(f64::NAN, 0.1, false).is_nan(), true);
+        assert_eq!(snap_value(1.23, 0.0, false), 1.23);
+        assert_eq!(snap_value(1.23, f64::NAN, false), 1.23);
+        assert_eq!(snap_value(1.23, f64::INFINITY, false), 1.23);
+    }
+
+    #[test]
+    fn drag_nan_and_swapped_guards() {
+        assert_eq!(drag_to_value(f64::NAN, 0.5, 0.0, 10.0), 0.0);
+        // swapped min/max normalizes instead of sticking at max
+        assert_eq!(drag_to_value(5.0, 0.0, 10.0, 0.0), 5.0);
     }
 
     #[test]

@@ -1,12 +1,11 @@
 [package]
 name = "freecad-ux"
 version = "0.1.0"
-edition = "2024"
+edition.workspace = true
 description = "Fusion-parity UX logic: chamfer drag and smart sketch snap"
 license = "LGPL-2.1-or-later"
 
 [dependencies]
 freecad-core = { workspace = true }
-glam = { workspace = true }
 
 [dev-dependencies]

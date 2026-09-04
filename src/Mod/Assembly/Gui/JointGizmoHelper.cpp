@@ -2,6 +2,7 @@
 #include "JointGizmoHelper.h"
 
 #include <cmath>
+#include <utility>
 #include <Gui/Inventor/Draggers/Gizmo.h>
 
 namespace AssemblyGui
@@ -27,7 +28,29 @@ double jointAxisAngle(const Base::Vector3d& axisA, const Base::Vector3d& axisB)
 
 bool jointIsCoincident(const Base::Vector3d& a, const Base::Vector3d& b, double tol)
 {
+    if (!std::isfinite(tol) || tol < 0.0) {
+        return false;
+    }
     return (a - b).Length() <= tol;
+}
+
+double jointClampLimit(double value, double min, double max, bool enabledMin, bool enabledMax)
+{
+    if (!std::isfinite(value)) {
+        return 0.0;
+    }
+    double lo = min, hi = max;
+    if (std::isfinite(lo) && std::isfinite(hi) && lo > hi) {
+        std::swap(lo, hi);
+    }
+    double v = value;
+    if (enabledMin && std::isfinite(lo) && v < lo) {
+        v = lo;
+    }
+    if (enabledMax && std::isfinite(hi) && v > hi) {
+        v = hi;
+    }
+    return v;
 }
 
 } // namespace AssemblyGui
