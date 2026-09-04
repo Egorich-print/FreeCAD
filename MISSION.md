@@ -8,7 +8,7 @@
 **Local**: `~/ai-workstation/Projects/FreeCAD` (симлинк из `projects/`)  
 **Старт**: `yolo-mission-start-20260828-b4f5679` (бэкап `/tmp/freecad-yolo-backup-20260828.tgz`)  
 **Агент**: Muse Spark (OpenCode)  
-**Current HEAD**: `2965485` (audit-refactor: Rust 29 tests, C++ tip-switch/measure parity)
+**Current HEAD**: `7e1c9e4` (docs: audit-refactor progress; code `2965485`, Rust 29 tests green)
 
 ---
 
