@@ -144,11 +144,11 @@ rust/crates/freecad-ux/ — 29 тестов проходят ✅ (chamfer 7, ske
 - [x] **Ghost snap** — `freecad-ux::ghost_edge_for_snap` 24 теста, `sketch::snap_candidates` deduplicated, arc `rem_euclid` fix для рефлекса >180°
 - [ ] Visual ghost preview при hover — следующий шаг (M13 hybrid)
 
-### M10 — Assembly Joints & Constraints (Rust) ⭐ P1
-- `freecad-ux::joint` уже есть: `JointType` (Rigid, Revolute, Slider, Coincident) + 24 теста ✅
-- C++ integration: `AssemblyGui` + `freecad-ux` joint solver
-- Joint gizmos: axis/arrow handles, drag to set limits
-- Joint limits: min/max angle, distance, lock/unlock
+### M10 — Assembly Joints & Constraints (Rust) ⭐ P1 — MISSION STARTED 2026-09-04
+- `freecad-ux::joint`: `JointType` (Rigid, Revolute, Slider, Coincident) + `AssemblyJointKind` (13 имён, `from_str`/`to_ux_type`/`is_animatable`) + `clamp_limit` ✅ 30 тестов
+- C++ integration: `AssemblyGui/JointGizmoHelper` (translation/axis/coincident/clamp mirrors) — Gizmo wiring к `ViewProviderAssembly` drag: TODO
+- Joint gizmos: axis/arrow handles, drag to set limits — TODO (математика готова с обеих сторон)
+- Joint limits: min/max angle, distance, lock/unlock — математика `clamp_limit` готова, UI TODO
 
 ### M11 — Measure & Inspect Tools ⭐ P2
 - `freecad-ux::measure` уже есть: distance, angle, bbox, point_to_segment ✅

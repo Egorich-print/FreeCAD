@@ -10,7 +10,7 @@ pub mod sketch;
 pub mod snap;
 
 pub use chamfer::{ChamferParams, ChamferType, drag_to_value, snap_value, validate_chamfer};
-pub use joint::{Joint, JointType};
+pub use joint::{AssemblyJointKind, Joint, JointType};
 pub use measure::{Point3, angle_at, bbox_diagonal, distance, point_to_segment_dist};
 pub use sketch::{
     ArcData, EdgeProj, FaceProj, HybridPolicy, SnapCandidate, SnapKind, face_edges_to_external,
